@@ -80,3 +80,85 @@ retry.
    aggregates?
 9. **GGUF / local models.** Confirmed as future scope. If it lands, the wizard needs a
    VRAM input to size quants, and Hugging Face becomes a third data source.
+
+---
+
+# Revision 2 — free tier, audience, and the precompute inversion
+
+## New constraints
+
+- Free product, **3 generations per user** as the cap.
+- Data refreshed **nightly**; a day of staleness is acceptable.
+- Project description **capped at 150 words**.
+- Audience is **regular and enthusiast users**, not professional developers.
+- Reference model is free benchmarking phone apps (Geekbench, AnTuTu).
+
+## The central recommendation: make the LLM optional, not capped
+
+Geekbench and AnTuTu are free because the thing people mostly do — look up scores —
+costs nothing to serve. Running a benchmark is the rare action; browsing the results
+database is the common one, and it is static and cacheable.
+
+Apply the same shape here. The wizard answers (tiles and sliders) are already
+structured data. Combined with the nightly catalog, a recommendation is a **pure
+deterministic function** — score every model against the role weights and the user's
+constraints, sort, return. That path needs no LLM at all.
+
+The LLM's only genuine job is the optional free-text step: turning 150 words of
+"what I'm building" into an archetype plus constraint overrides. That is
+classification, not reasoning.
+
+So split the product:
+
+**Path A — tiles only. No login. No cap. Instant. ~$0 marginal cost.**
+Deterministic scoring against the cached catalog. Served from edge cache. This will
+be the large majority of users and they get a real, complete recommendation without
+ever seeing an auth wall.
+
+**Path B — free text. Login required. 3 per day.**
+The analyzer runs, maps the description to an archetype, and personalizes the result.
+This is the enthusiast path and the one worth an account.
+
+The cap now reads as generous rather than stingy, because the free path is genuinely
+complete. And first-time visitors reach value before they are asked for anything.
+
+## Settled
+
+- **Tier-1 analyzer is GLM-5.3-Flash** ($0.15/$0.50), escalating to full GLM-5.3
+  ($1.40/$4.40). Same vendor, same API, same prompt — swap the model ID. See
+  `docs/cost-model.md`.
+- **Nightly staleness is a feature.** It lets the entire catalog be served as a static
+  edge-cached artifact, which is what makes the free path free. Surface it honestly in
+  the UI as "prices as of <date>" rather than implying live data.
+- **Cap is 3 per day**, not 3 per lifetime.
+
+## The 150-word cap is a security control, not a cost control
+
+At these prices the token savings are meaningless. The cap matters because **the
+product's output is designed to be pasted into the user's AI agent.** Unsanitized
+user text flowing into a generated handoff makes this an injection delivery vehicle:
+a description containing "ignore previous instructions and..." would ride straight
+into someone's coding agent.
+
+Required mitigations:
+- User free text must never land verbatim in an instruction position in the handoff.
+  Quote it, fence it, and label it as untrusted user input.
+- The analyzer returns a fixed enum archetype, never free-form prose that is then
+  interpolated into the output.
+- Validate the analyzer's JSON against a strict schema and reject anything off-schema
+  rather than passing it through.
+
+## Open — needs a decision before building
+
+1. **Artificial Analysis redistribution.** This mattered before; it is now load-bearing.
+   If the free browsable leaderboard is the core product, AA's scores sit at the centre
+   of the business rather than at its edge. Confirm the terms in writing first.
+2. **Do these users even have API keys?** "Regular and enthusiast" users mostly live in
+   ChatGPT Plus, Claude Pro, Cursor, or v0/Lovable/Bolt. Telling them to route bulk work
+   to a $0.14/M API model assumes infrastructure they may not have. Either the catalog
+   needs to include subscription products and AI tools alongside raw API models, or the
+   audience is narrower than stated. This is the biggest unresolved product question.
+3. **Monetization honesty.** Geekbench sells Pro licences and commercial usage rights;
+   AnTuTu runs ads and brand partnerships. Neither is purely free. "Free forever, no
+   plan" is a decision to absorb ~$540/year at modest scale — affordable, but it should
+   be a choice made deliberately rather than assumed.
