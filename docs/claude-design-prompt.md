@@ -52,6 +52,20 @@ and the thing I care most about.
 
 ## The steps
 
+**Step 0 — How deep do you want to go?**
+Three cards, and this is the first thing on screen. It never asks the user to rate
+themselves — it asks what they want to see:
+
+- **"Just tell me what to use"** — only steps 1 and 4 are then shown. Fifteen seconds
+  to a result.
+- **"Show me the options"** — the default. All six steps.
+- **"Hug me"** — all six steps plus a hardware question, and local / Hugging Face
+  models enter the running. The pun is deliberate; leave it in.
+
+This choice controls **how much gets asked and how much gets shown**. It must never
+change the quality of the answer — a first-timer gets the same recommendation as
+everyone else, just with fewer questions and fewer columns on screen.
+
 **Step 1 — What are you building?**
 Six large tiles with an icon and a one-line description:
 Agent / automation · Chat or support bot · Data extraction & documents · Coding tool ·
@@ -74,6 +88,10 @@ only", at $500 it says "Frontier models, no real constraint".
 A row of three sliders that must total 100 — **Quality**, **Speed**, **Cost**. Dragging
 one redistributes the others. Show the live split as a thin stacked bar. Default 50/20/30.
 
+**Step 5b — What hardware have you got?** (Hug Me only)
+A VRAM figure, so a GGUF quantization can be sized to actually fit. This is the one
+screen allowed to assume real technical knowledge, because only Hug Me reaches it.
+
 **Step 6 — Describe it in your own words** (optional, free text)
 Placeholder: "A Slack bot that reads our support inbox and drafts replies from our docs."
 **Hard cap of 150 words**, with a live counter that sits quiet in grey and turns amber at
@@ -82,55 +100,61 @@ Placeholder: "A Slack bot that reads our support inbox and drafts replies from o
 
 Then a full-width button: **Find my models**.
 
-## The result screen
+## The result screen — a spec sheet
 
-A brief analyzing state — 2 to 3 seconds, showing the reasoning steps ticking past as
-lines that check off one by one ("Read your project shape", "Scored 340 models",
-"Checked live pricing", "Matched roles to models"). Then the result.
+Think of the system-requirements panel on the back of a video game box. That is exactly
+the shape this screen takes, and it is the most important idea in the whole design.
 
-The result is a vertical stack of **job cards** — one per job your project needs doing.
-Name them in plain language, never in jargon. For an automation project the jobs would be:
+A brief analyzing state first — 2 to 3 seconds, reasoning steps checking off one by one
+("Read your project shape", "Scored 340 models", "Checked today's prices"). Then:
+
+**A table. Jobs down the left, three builds across the top.**
+
+Columns: **MINIMUM · RECOMMENDED · ULTRA**. Recommended is visually marked as the
+default — it gets the accent colour, the others stay neutral.
+
+Rows are the jobs the project needs done, named in plain language and never in jargon:
 
 - **The thinker** — "Breaks your problem into steps and decides what happens next"
 - **The workhorse** — "Does the repetitive work, thousands of times, cheaply"
 - **The reader** — "Looks at images, screenshots and scanned documents"
 - **The librarian** — "Finds the right piece of your own data to use"
 
-Each job card contains:
+Each cell holds a model name. A cheaper tier may say "not included" for a row, which is
+itself informative — it shows what you give up.
 
-- The job name and its plain-language one-liner, rewritten to mention *their* project
-  specifically rather than staying generic.
-- **The pick**: model name, who makes it, and three hard numbers side by side —
-  benchmark score, price as `$in / $out per million tokens`, and median latency — each
-  with a tiny grey caption saying which direction is good ("higher is better",
-  "lower is cheaper", "lower is faster").
-- A short **"why this one"** sentence citing an actual number, e.g. "Scores 4 points
-  below the leader on agentic tasks but costs 11x less."
-- A **"Sleeper pick"** slot underneath, visually distinct with a subtle accent border —
-  a lesser-known model that beat the popular ones on this job's score. This slot is a
-  first-class feature, not a footnote. Give it a small label like "Underrated".
-- Two or three **alternates** collapsed behind a "Compare 3 others" disclosure. Expanded,
-  they show as a tight comparison table with the same three numbers, and the winning
-  number in each column gets bold + a colored dot.
-- A "swap" control that promotes an alternate to the pick and **recomputes the running
-  monthly cost estimate at the top of the page**, live.
-- A **"What would this cost me?"** line translating the abstract per-million price into
-  something concrete, e.g. "About $3 a month if you run this 100 times a day."
+Two rows close the table, and they answer the only question the user actually arrived
+with:
 
+- **"Runs you about"** — a monthly dollar figure per column, in monospace.
+- **"On a $X budget"** — a verdict per column in plain words: "comfortably under",
+  "fits", "4.5x over budget". Colour-coded, but the words must carry it alone.
 
-At the top of the results, a sticky summary bar: estimated monthly cost vs their budget,
-as a slim horizontal meter. Green while under, amber past 80%, red when over. Show the
-actual dollar figures, not just the bar.
+**Behaviour:**
+
+- If the user chose "Just tell me what to use", show only the Recommended column, with
+  a quiet "show me the other two" control. The other columns are computed, just not
+  shown.
+- If the user chose "Hug me", a fourth column appears for a local build, with the
+  quantization and the VRAM it needs.
+- Clicking any cell expands a short panel: why this model won this row, its benchmark
+  score, its price, and two alternates that nearly won. Each number carries a tiny grey
+  caption saying which direction is good.
+- Swapping a model inside a cell recomputes that column's cost row and verdict live,
+  with the number counting rather than snapping.
+
+The whole point is that the reader compares columns and never has to learn a
+specification. If they can pick a column without knowing what any of the model names
+mean, the screen works.
 
 At the bottom, the payoff: **Your handoff**. A dark block containing text the user pastes
-straight into Claude or ChatGPT to start building — written as plain prose instructions,
-not as a config file. It states what they are building, which model to use for which job
-and why, and what to set up first.
+straight into Claude or ChatGPT to start building — plain prose instructions, not a
+config file. It names the chosen models, says plainly that API keys will be needed and
+that their assistant can walk them through it, and states what to set up first.
 
-This chat-ready version is the **default tab**, because most of these users are working in
-a chat window, not a terminal. Two further tabs sit beside it for people who want them:
-`AGENTS.md` and `models.json`. Label the default tab "Paste into Claude or ChatGPT", not
-"Markdown".
+This chat-ready version is the **default tab**. Two more sit beside it for people who
+want them: `AGENTS.md` and `models.json`. Label the default tab "Paste into Claude or
+ChatGPT", not "Markdown".
 
 One big **Copy** button, and a quieter **Download** next to it.
 
