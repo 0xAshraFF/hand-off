@@ -10,18 +10,25 @@ Build me a single-file React artifact for a product called **Handoff**.
 
 ## What the product does
 
-Handoff is a project-aware model recommendation engine. A developer tells it what they
-are building, in a few taps, and it hands back:
+Handoff is a project-aware model recommendation engine. Someone tells it what they are
+building, in a few taps, and it hands back:
 
-1. A ranked model recommendation **per role in their project** — not one model for
-   everything. A project needs a planner, a bulk worker, maybe a vision model, maybe an
-   embedding model. Each gets its own pick.
-2. A **handoff file** they paste into their coding agent (Claude Code, Cursor, Copilot)
-   so the agent knows which model to call for which job, with the API snippets.
+1. A ranked model recommendation **for each job their project needs done** — not one
+   model for everything. Most projects need something to do the thinking, something
+   cheap to do the repetitive work, and sometimes something that can look at pictures.
+   Each gets its own pick.
+2. A **handoff** they paste into Claude or ChatGPT so their AI knows which model to use
+   for which job, and builds the thing properly.
 
 The wedge is that recommendations are driven by current benchmark data and real token
 prices, and that it will happily recommend an obscure model that wins on the numbers over
 a famous one that does not.
+
+**Audience: curious and enthusiast users, not professional developers.** Assume the reader
+has built something with ChatGPT or Claude but does not know what "embeddings", "agentic",
+or "inference" mean. Never use those words in the interface. Every number needs a plain
+sentence next to it saying whether bigger is better. There is no login anywhere in this
+prototype — the whole flow is open.
 
 ## The core interaction — read this part twice
 
@@ -67,9 +74,11 @@ only", at $500 it says "Frontier models, no real constraint".
 A row of three sliders that must total 100 — **Quality**, **Speed**, **Cost**. Dragging
 one redistributes the others. Show the live split as a thin stacked bar. Default 50/20/30.
 
-**Step 6 — Describe it in a sentence** (optional, free text)
+**Step 6 — Describe it in your own words** (optional, free text)
 Placeholder: "A Slack bot that reads our support inbox and drafts replies from our docs."
-With a "Skip" link. Below it, small text: "This sharpens the picks. We never share it."
+**Hard cap of 150 words**, with a live counter that sits quiet in grey and turns amber at
+130 and red at 150, blocking further typing. With a "Skip" link. Below it, small text:
+"This sharpens the picks. It stays private to you."
 
 Then a full-width button: **Find my models**.
 
@@ -79,33 +88,55 @@ A brief analyzing state — 2 to 3 seconds, showing the reasoning steps ticking 
 lines that check off one by one ("Read your project shape", "Scored 340 models",
 "Checked live pricing", "Matched roles to models"). Then the result.
 
-The result is a vertical stack of **role cards**. For an agent project, roles would be:
-Planner / Reasoning · Bulk worker · Vision · Embeddings. Each role card contains:
+The result is a vertical stack of **job cards** — one per job your project needs doing.
+Name them in plain language, never in jargon. For an automation project the jobs would be:
 
-- The role name and one line explaining what this model does in *their* project,
-  written in terms of their answers, not generically.
+- **The thinker** — "Breaks your problem into steps and decides what happens next"
+- **The workhorse** — "Does the repetitive work, thousands of times, cheaply"
+- **The reader** — "Looks at images, screenshots and scanned documents"
+- **The librarian** — "Finds the right piece of your own data to use"
+
+Each job card contains:
+
+- The job name and its plain-language one-liner, rewritten to mention *their* project
+  specifically rather than staying generic.
 - **The pick**: model name, who makes it, and three hard numbers side by side —
-  benchmark score, price as `$in / $out per million tokens`, and median latency.
+  benchmark score, price as `$in / $out per million tokens`, and median latency — each
+  with a tiny grey caption saying which direction is good ("higher is better",
+  "lower is cheaper", "lower is faster").
 - A short **"why this one"** sentence citing an actual number, e.g. "Scores 4 points
   below the leader on agentic tasks but costs 11x less."
 - A **"Sleeper pick"** slot underneath, visually distinct with a subtle accent border —
-  a lesser-known model that beat the popular ones on this role's score. This slot is a
+  a lesser-known model that beat the popular ones on this job's score. This slot is a
   first-class feature, not a footnote. Give it a small label like "Underrated".
 - Two or three **alternates** collapsed behind a "Compare 3 others" disclosure. Expanded,
   they show as a tight comparison table with the same three numbers, and the winning
   number in each column gets bold + a colored dot.
 - A "swap" control that promotes an alternate to the pick and **recomputes the running
   monthly cost estimate at the top of the page**, live.
+- A **"What would this cost me?"** line translating the abstract per-million price into
+  something concrete, e.g. "About $3 a month if you run this 100 times a day."
+
 
 At the top of the results, a sticky summary bar: estimated monthly cost vs their budget,
 as a slim horizontal meter. Green while under, amber past 80%, red when over. Show the
 actual dollar figures, not just the bar.
 
-At the bottom, the payoff: **Your handoff**. A dark code block containing a generated
-`AGENTS.md` — project summary, the model routing table, env vars to set, and a short
-"rules for the agent" section. One big **Copy handoff** button, and a secondary
-**Download AGENTS.md**. Next to it, a small row of tabs to switch the generated format
-between `AGENTS.md`, `CLAUDE.md`, and `models.json`.
+At the bottom, the payoff: **Your handoff**. A dark block containing text the user pastes
+straight into Claude or ChatGPT to start building — written as plain prose instructions,
+not as a config file. It states what they are building, which model to use for which job
+and why, and what to set up first.
+
+This chat-ready version is the **default tab**, because most of these users are working in
+a chat window, not a terminal. Two further tabs sit beside it for people who want them:
+`AGENTS.md` and `models.json`. Label the default tab "Paste into Claude or ChatGPT", not
+"Markdown".
+
+One big **Copy** button, and a quieter **Download** next to it.
+
+Important: if the user wrote a free-text description in step 6, it must appear inside the
+handoff **quoted and clearly fenced as the user's own words** — never merged into the
+instruction prose, since this text is about to be pasted into someone's AI assistant.
 
 ## Visual design
 
@@ -140,6 +171,10 @@ sleeper-pick slot has something real to surface. Write the scoring as an honest 
 weighted role-fit × the user's quality/speed/cost split, filtered by their modality and
 deployment constraints — so that changing the sliders actually changes the picks. I want
 to feel the recommendation move when I drag them.
+
+Put a small honest timestamp under the results: "Prices and scores as of 20 September
+2026" — the real product refreshes nightly and should say so rather than implying it is
+live.
 
 Do not add a login screen, a landing page, or marketing copy. Start directly on question
 one.
