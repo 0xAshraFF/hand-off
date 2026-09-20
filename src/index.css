@@ -1,0 +1,57 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    --bg-main: #ffffff;
+    --bg-card: #ffffff;
+    --bg-subtle: #f6f6f6;
+    --bg-hover: #eeeeee;
+    --border-color: #e5e5e5;
+    --text-primary: #000000;
+    --text-secondary: #5e5e5e;
+    --text-tertiary: #8c8c8c;
+    --accent-black: #000000;
+    --accent-white: #ffffff;
+  }
+
+  .dark {
+    --bg-main: #000000;
+    --bg-card: #121212;
+    --bg-subtle: #1a1a1a;
+    --bg-hover: #262626;
+    --border-color: #262626;
+    --text-primary: #ffffff;
+    --text-secondary: #a6a6a6;
+    --text-tertiary: #6e6e6e;
+    --accent-black: #ffffff;
+    --accent-white: #000000;
+  }
+
+  body {
+    background-color: var(--bg-main);
+    color: var(--text-primary);
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    letter-spacing: -0.01em;
+  }
+
+  code, pre, .font-mono {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  }
+}
+
+/* Uber-style custom scrollbar */
+::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #d4d4d4;
+  border-radius: 2px;
+}
+.dark ::-webkit-scrollbar-thumb {
+  background: #333333;
+}
