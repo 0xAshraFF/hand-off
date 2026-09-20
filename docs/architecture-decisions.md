@@ -228,13 +228,40 @@ DeepSeek V4.1 Flash ($0.15/$0.60 off-peak). DeepSeek supports a JSON schema in
 input tokens are a fixed prompt and schema, prefix caching takes most of the input cost
 to nearly zero.
 
-## "Lyken" could not be verified
+## "Lyken" could not be verified — and that is a product requirement, not trivia
 
-No result for it as a model name. It may be too new to index, or spelled differently.
-Worth noting because the search *did* surface real free models most Claude users have
-never heard of — Nemotron 3 Ultra, Laguna S 2.1, Ling 3.0 Flash Fin, Inkling Small.
-That is the product's whole thesis, and it is also the argument against anyone (us
-included) curating this list from memory.
+Checked, in order: web search under both a model name and a gateway name; the
+`0xAshraFF/BigShort` repository (its GitHub copy is a single 2-line README — the agent
+code is local only); and the installed `stock-scout` skill, which references no LLM API
+at all. Nothing found. The only occurrences of the string on this machine are the ones
+written in this session.
+
+It is almost certainly real — it is in use in a local codebase. It is simply not in any
+index reachable from here, under that spelling.
+
+**The consequence for the build.** If the person designing this product is already using
+a model that none of the feeds carry, then Artificial Analysis and OpenRouter will have
+holes in exactly the place the differentiation lives: the obscure, cheap, barely-indexed
+models that nobody on Claude has heard of. A catalog assembled purely from two feeds
+will quietly recommend only what the feeds know, which is the mainstream — the precise
+failure this product exists to avoid.
+
+So the catalog needs a third input alongside the two feeds:
+
+- A **manual override table** in Postgres, same schema as synced rows, with a
+  `source: 'manual'` column and a `verified_at` date. Hand-entered models survive the
+  nightly sync instead of being clobbered by it.
+- A **"suggest a model" path** for signed-in users. This is the highest-value thing the
+  accounts unlock, and it is worth more than the saved-projects feature: users who run
+  obscure models are exactly the audience, and they will know names before the indexes
+  do.
+- A staleness rule for manual rows — flag anything not re-verified in 90 days, so
+  hand-entered prices do not rot into the same fiction the current `models.ts` contains.
+
+To resolve the name specifically, from the local BigShort checkout:
+`grep -rinE "lyken|base_url|baseURL|OPENAI_BASE|model\s*[:=]" --include="*.py" --include="*.ts" --include="*.js" . | head -40`
+plus whatever `.env` key it reads. The base URL and the exact model string are what the
+catalog row needs.
 
 ## Hug Me is the largest build item in the plan
 
