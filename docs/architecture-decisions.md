@@ -162,3 +162,82 @@ Required mitigations:
    AnTuTu runs ads and brand partnerships. Neither is purely free. "Free forever, no
    plan" is a decision to absorb ~$540/year at modest scale — affordable, but it should
    be a choice made deliberately rather than assumed.
+
+---
+
+# Revision 3 — the depth gate and the spec sheet
+
+## New decisions
+
+- **Step 0 is a depth gate**, asked before anything else: *Just tell me what to use* /
+  *Show me the options* / *Hug me* (local and Hugging Face included).
+- **The output is a spec sheet**, laid out like the system-requirements panel on a
+  game box: jobs down the side, **Minimum / Recommended / Ultra** across the top, a
+  cost row and a fits-or-doesn't verdict at the bottom.
+- **The analyzer is any cheap flash model**, not GLM-5.3. GLM-5.3 at $1.40/$4.40 was
+  overkill for schema-filling.
+- **API keys are the handoff's problem, not the wizard's.** The user pastes the
+  handoff into Claude or ChatGPT, and their assistant walks them through getting keys.
+  Nothing upfront in the flow mentions them.
+
+## Why the game-box framing is the strongest idea so far
+
+It solves the problem that an enthusiast audience does not know model names and should
+not have to. Nobody reading a game box learns what a GPU is — they compare columns and
+find the one their machine can run. Three tiers reproduce that exactly: the reader never
+learns a spec, they just read across and pick a column their budget reaches.
+
+It also gives the "recommend obscure models" promise somewhere natural to live. An
+unknown name in the Minimum column next to a familiar one in Ultra makes the argument by
+itself, without an "underrated" badge having to explain it.
+
+## Two axes were being conflated — keep them separate
+
+`noob / intermediate / hug me` is about **how much the app asks and shows**.
+`Minimum / Recommended / Ultra` is about **which models get recommended**.
+
+They are independent: a first-timer can have a large budget, an expert can want free
+models only. Conflating them would mean a beginner is refused the Ultra column purely
+for being a beginner, which is wrong.
+
+The resolution: the gate controls **how many questions are asked and how many columns
+are shown**. The spec sheet is always computed in full. A first-timer sees the
+Recommended column, with the other two available behind a "show me the rest" control.
+
+## Reduce the input burden, never the output value
+
+"If it's noob they won't bother" is right about attention and wrong as a spec if it
+means a thinner answer. A first-timer needs the prescription *most* — they are the ones
+who cannot assemble it themselves. So:
+
+- **Fewer questions**: two (what are you building, what can you spend). Everything else
+  takes a sensible default.
+- **The same handoff**: identical quality, identical completeness. The gate changes
+  the interrogation, not the prescription.
+
+## Do not hardcode the analyzer
+
+Store the analyzer as a row in the same catalog and let the same scoring function pick
+it for the job "classify short text into a fixed schema, as cheaply as possible". It
+then updates itself nightly as prices move. A model-recommendation product that pins
+its own model is the criticism that writes itself.
+
+Candidates as of Sept 2026: Qwen3.7 Flash ($0.03/$0.13), GLM-5.3-Flash ($0.15/$0.50),
+DeepSeek V4.1 Flash ($0.15/$0.60 off-peak). DeepSeek supports a JSON schema in
+`response_format` and prices cache hits at $0.003/M — and since ~1,200 of the ~1,500
+input tokens are a fixed prompt and schema, prefix caching takes most of the input cost
+to nearly zero.
+
+## "Lyken" could not be verified
+
+No result for it as a model name. It may be too new to index, or spelled differently.
+Worth noting because the search *did* surface real free models most Claude users have
+never heard of — Nemotron 3 Ultra, Laguna S 2.1, Ling 3.0 Flash Fin, Inkling Small.
+That is the product's whole thesis, and it is also the argument against anyone (us
+included) curating this list from memory.
+
+## Hug Me is the largest build item in the plan
+
+It adds a third data source (Hugging Face), quantization awareness, and a VRAM question
+that only that tier sees. It is also the tier that delivers the differentiation best.
+Worth sequencing last, after the cloud tiers are working end to end.
