@@ -1,4 +1,4 @@
-<title>Model Picks by Job</title>
+<title>Models in Your Budget</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500;700&display=swap">
@@ -6,9 +6,8 @@
   :root {
     --paper:#EEF1EF; --surface:#FBFCFB; --surface-2:#F4F6F4; --surface-3:#E8ECEA;
     --ink:#12171A; --muted:#5B686D; --line:#D2D9D5;
-    --teal:#0B7D72; --teal-wash:#E4F1EF; --teal-bar:#0B7D72;
+    --teal:#0B7D72; --teal-wash:#E4F1EF;
     --amber:#A75B0C; --amber-wash:#F8EDE1;
-    --slate:#5B686D; --slate-wash:#EAEEEC;
     --display:"Bricolage Grotesque","Trebuchet MS",sans-serif;
     --body:"Instrument Sans",-apple-system,"Segoe UI",sans-serif;
     --mono:"JetBrains Mono",ui-monospace,Menlo,monospace;
@@ -17,17 +16,15 @@
     :root:not([data-theme="light"]) {
       --paper:#0D1113; --surface:#161B1E; --surface-2:#1B2124; --surface-3:#232A2E;
       --ink:#E9EEEB; --muted:#93A09F; --line:#2A3235;
-      --teal:#45C3B4; --teal-wash:#12292A; --teal-bar:#45C3B4;
+      --teal:#45C3B4; --teal-wash:#12292A;
       --amber:#E39A4A; --amber-wash:#2B2015;
-      --slate:#93A09F; --slate-wash:#1E2427;
     }
   }
   :root[data-theme="dark"] {
     --paper:#0D1113; --surface:#161B1E; --surface-2:#1B2124; --surface-3:#232A2E;
     --ink:#E9EEEB; --muted:#93A09F; --line:#2A3235;
-    --teal:#45C3B4; --teal-wash:#12292A; --teal-bar:#45C3B4;
+    --teal:#45C3B4; --teal-wash:#12292A;
     --amber:#E39A4A; --amber-wash:#2B2015;
-    --slate:#93A09F; --slate-wash:#1E2427;
   }
 
   body {
@@ -36,7 +33,7 @@
     margin: 0; padding-inline: 20px; padding-block: 40px 72px;
     -webkit-font-smoothing: antialiased;
   }
-  .wrap { max-width: 1120px; margin: 0 auto; display: flex; flex-direction: column; gap: 34px; }
+  .wrap { max-width: 1120px; margin: 0 auto; display: flex; flex-direction: column; gap: 32px; }
 
   .eyebrow {
     font-family: var(--mono); font-size: 11px; letter-spacing: .13em;
@@ -49,7 +46,6 @@
   .lede { font-size: 16.5px; color: var(--muted); max-width: 64ch; margin: 0; }
   .lede strong { color: var(--ink); font-weight: 600; }
 
-  /* tabs */
   .tabs { display: flex; flex-wrap: wrap; gap: 8px; }
   .tab {
     font-family: var(--body); font-size: 13.5px; font-weight: 500;
@@ -58,82 +54,72 @@
     transition: background .15s, color .15s, border-color .15s;
   }
   .tab:hover { border-color: var(--muted); color: var(--ink); }
-  .tab[aria-selected="true"] {
-    background: var(--ink); color: var(--paper); border-color: var(--ink); font-weight: 600;
-  }
+  .tab[aria-selected="true"] { background: var(--ink); color: var(--paper); border-color: var(--ink); font-weight: 600; }
   .tab:focus-visible { outline: 2px solid var(--teal); outline-offset: 2px; }
 
-  /* phase head */
-  .phase-head { display: flex; flex-direction: column; gap: 12px; }
-  .phase-title {
-    font-family: var(--display); font-size: clamp(21px, 3.2vw, 27px); font-weight: 700;
-    letter-spacing: -.015em; margin: 0; text-wrap: balance;
+  .counter { display: flex; flex-direction: column; gap: 5px; }
+  .counter .big {
+    font-family: var(--display); font-size: clamp(22px, 3.4vw, 30px); font-weight: 700;
+    letter-spacing: -.018em; margin: 0; text-wrap: balance;
   }
-  .badges { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
-  .badge {
-    display: inline-flex; align-items: center; gap: 7px;
-    font-family: var(--mono); font-size: 10.5px; letter-spacing: .09em; text-transform: uppercase;
-    padding: 6px 11px; border-radius: 6px; border: 1px solid;
-  }
-  .badge .dot { width: 7px; height: 7px; border-radius: 50%; background: currentColor; flex: none; }
-  .badge.strong { color: var(--teal); border-color: var(--teal); background: var(--teal-wash); }
-  .badge.split  { color: var(--amber); border-color: var(--amber); background: var(--amber-wash); }
-  .badge.none   { color: var(--slate); border-color: var(--line); background: var(--slate-wash); }
-  .src { font-size: 12.5px; color: var(--muted); }
-  .src b { color: var(--ink); font-weight: 600; }
+  .counter .sub { font-size: 13.5px; color: var(--muted); margin: 0; }
 
-  /* comparison table */
-  .tablewrap {
-    overflow-x: auto; border: 1px solid var(--line); border-radius: 12px; background: var(--surface);
+  /* model cards */
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(268px, 1fr)); gap: 14px; }
+  .card {
+    border: 1px solid var(--line); border-radius: 12px; background: var(--surface);
+    padding: 17px 18px 16px; display: flex; flex-direction: column; gap: 11px;
   }
-  table { border-collapse: collapse; width: 100%; min-width: 660px; }
-  th, td { text-align: left; padding: 13px 15px; border-bottom: 1px solid var(--line); vertical-align: top; }
-  tbody tr:last-child th, tbody tr:last-child td { border-bottom: none; }
-  thead th { background: var(--surface-2); border-bottom: 1.5px solid var(--ink); }
-  .rowlab {
-    font-family: var(--mono); font-size: 10.5px; letter-spacing: .08em; text-transform: uppercase;
-    color: var(--muted); font-weight: 400; width: 150px; white-space: nowrap;
+  .card.fresh { border-color: var(--teal); }
+  .card-top { display: flex; flex-direction: column; gap: 3px; }
+  .flag {
+    align-self: flex-start; font-family: var(--mono); font-size: 9.5px; letter-spacing: .1em;
+    text-transform: uppercase; color: var(--teal); border: 1px solid var(--teal);
+    background: var(--teal-wash); padding: 3px 7px; border-radius: 5px; margin-bottom: 5px;
   }
-  .mname { font-family: var(--display); font-size: 16px; font-weight: 700; letter-spacing: -.01em; display: block; }
-  .mprov { font-size: 12px; color: var(--muted); display: block; margin-top: 2px; }
-  td { font-size: 13.5px; }
-  .num { font-family: var(--mono); font-size: 13.5px; font-variant-numeric: tabular-nums; }
-  .win { font-weight: 700; color: var(--teal); }
-  .na { color: var(--muted); font-style: italic; font-size: 12.5px; }
-  .pick, .pick-spacer {
-    display: inline-block; font-family: var(--mono); font-size: 9.5px; letter-spacing: .1em;
-    text-transform: uppercase; padding: 3px 7px; border-radius: 5px; margin-bottom: 7px;
-    border: 1px solid transparent;
+  .flag.spacer { visibility: hidden; }
+  .mname {
+    font-family: var(--display); font-size: 18px; font-weight: 700;
+    letter-spacing: -.012em; line-height: 1.15;
   }
-  .pick { color: var(--teal); border-color: var(--teal); background: var(--teal-wash); }
-  .pick-spacer { visibility: hidden; }
-  col.best { background: var(--teal-wash); }
-
-  /* score bar: single-hue sequential, magnitude only */
-  .bar { display: block; height: 5px; border-radius: 3px; background: var(--surface-3); margin-top: 6px; max-width: 128px; }
-  .bar i { display: block; height: 100%; border-radius: 3px; background: var(--teal-bar); }
-
-  .callout {
-    border-left: 3px solid var(--amber); background: var(--surface);
-    padding: 15px 18px; border-radius: 0 9px 9px 0; font-size: 14.5px; color: var(--muted);
+  .mprov { font-size: 12.5px; color: var(--muted); }
+  .price {
+    font-family: var(--mono); font-size: 12.5px; font-variant-numeric: tabular-nums;
+    color: var(--ink); padding: 8px 0; border-block: 1px solid var(--line);
+    display: flex; flex-direction: column; gap: 3px;
   }
-  .callout.agree { border-left-color: var(--teal); }
-  .callout b { color: var(--ink); font-weight: 600; }
-  .callout .ch {
-    font-family: var(--mono); font-size: 10.5px; letter-spacing: .1em; text-transform: uppercase;
-    display: block; margin-bottom: 6px; color: var(--ink);
+  .price .rate { color: var(--muted); }
+  .price .mo { color: var(--teal); font-weight: 700; }
+  .fit { display: flex; flex-direction: column; gap: 7px; font-size: 13.5px; }
+  .fit .lab {
+    font-family: var(--mono); font-size: 9.5px; letter-spacing: .1em;
+    text-transform: uppercase; color: var(--muted); display: block; margin-bottom: 2px;
+  }
+  .fit .good { color: var(--ink); }
+  .fit .bad { color: var(--muted); }
+  .tags { display: flex; flex-wrap: wrap; gap: 5px; margin-top: auto; padding-top: 4px; }
+  .tag {
+    font-family: var(--mono); font-size: 9.5px; letter-spacing: .06em; text-transform: uppercase;
+    color: var(--muted); border: 1px solid var(--line); background: var(--surface-2);
+    padding: 3px 7px; border-radius: 4px;
   }
 
   .note {
     border-left: 3px solid var(--teal); background: var(--surface);
-    padding: 15px 18px; border-radius: 0 9px 9px 0; font-size: 14.5px; color: var(--muted);
+    padding: 16px 19px; border-radius: 0 9px 9px 0; font-size: 14.5px; color: var(--muted);
   }
+  .note.warn { border-left-color: var(--amber); }
   .note b { color: var(--ink); font-weight: 600; }
+  .note .ch {
+    font-family: var(--mono); font-size: 10.5px; letter-spacing: .1em; text-transform: uppercase;
+    display: block; margin-bottom: 7px; color: var(--ink);
+  }
   h2 {
     font-family: var(--display); font-weight: 700; font-size: clamp(20px, 3vw, 25px);
     letter-spacing: -.015em; margin: 0 0 8px; text-wrap: balance;
   }
-  section > p { max-width: 65ch; color: var(--muted); margin: 0 0 18px; }
+  section { display: flex; flex-direction: column; gap: 14px; }
+  section > p { max-width: 65ch; color: var(--muted); margin: 0; }
   footer { font-size: 12.5px; color: var(--muted); border-top: 1px solid var(--line); padding-top: 18px; }
   footer a { color: var(--muted); }
   @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
@@ -142,201 +128,166 @@
 <div class="wrap">
 
   <header>
-    <p class="eyebrow">Handoff · comparison board · 20 Sep 2026</p>
-    <h1>Nobody should have to earn this by trial and error</h1>
-    <p class="lede">You know Kimi builds better interfaces and Opus plans better because you paid for that knowledge in hours. This is that knowledge as a table — <strong>pick the job, see who wins, and see which benchmark says so.</strong> Where no benchmark exists, it says that too.</p>
+    <p class="eyebrow">Handoff · what your budget buys · 20 Sep 2026</p>
+    <h1>You can afford more than you think, and more names than you know</h1>
+    <p class="lede">Nothing here is a ruling. Pick what you can spend and this shows <strong>everything in reach</strong> — what each one is genuinely good at, and what it is the wrong tool for. Most people arrive knowing two of these names. Leave knowing nine, then go try them.</p>
   </header>
 
-  <div class="tabs" role="tablist" aria-label="Job">
-    <button class="tab" role="tab" id="t-plan"  aria-selected="true"  onclick="pick('plan')">Planning</button>
-    <button class="tab" role="tab" id="t-ui"    aria-selected="false" onclick="pick('ui')">Building UI</button>
-    <button class="tab" role="tab" id="t-debug" aria-selected="false" onclick="pick('debug')">Debugging</button>
-    <button class="tab" role="tab" id="t-value" aria-selected="false" onclick="pick('value')">Coding on a budget</button>
-    <button class="tab" role="tab" id="t-all"   aria-selected="false" onclick="pick('all')">All-rounder</button>
-    <button class="tab" role="tab" id="t-local" aria-selected="false" onclick="pick('local')">Running local</button>
-    <button class="tab" role="tab" id="t-media" aria-selected="false" onclick="pick('media')">Images &amp; video</button>
+  <div class="tabs" role="tablist" aria-label="Budget">
+    <button class="tab" role="tab" id="t-free" aria-selected="true"  onclick="pick('free')">Free</button>
+    <button class="tab" role="tab" id="t-low"  aria-selected="false" onclick="pick('low')">Under $5 a month</button>
+    <button class="tab" role="tab" id="t-mid"  aria-selected="false" onclick="pick('mid')">Under $15 a month</button>
+    <button class="tab" role="tab" id="t-top"  aria-selected="false" onclick="pick('top')">No ceiling</button>
   </div>
 
-  <div class="phase-head">
-    <h2 class="phase-title" id="ph-title">Planning and architecture</h2>
-    <div class="badges" id="ph-badges"></div>
-    <p class="src" id="ph-src"></p>
+  <div class="counter">
+    <p class="big" id="c-big"></p>
+    <p class="sub" id="c-sub"></p>
   </div>
 
-  <div class="tablewrap">
-    <table id="board">
-      <colgroup id="cg"></colgroup>
-      <thead><tr id="hrow"></tr></thead>
-      <tbody id="brow"></tbody>
-    </table>
-  </div>
+  <div class="grid" id="grid"></div>
 
-  <div class="callout" id="verdict"></div>
+  <p class="note warn" id="tiernote"></p>
 
   <section>
-    <h2>Why the evidence label is the product</h2>
-    <p>Every comparison site shows numbers. None of them tell you when they ran out of numbers and started guessing.</p>
-    <p class="note"><b>Three labels, and they're the reason to trust the rest.</b> <b>Benchmark-backed</b> means a public leaderboard measures this job directly and the ranking is its ranking. <b>Split decision</b> means two credible benchmarks disagree, and the page shows both rather than picking the flattering one. <b>Hands-on only</b> means nothing public measures this and the pick is somebody's judgement, labelled as such. A recommendation engine that never admits the third case is one you cannot calibrate against — and the third case is where your hardest-won knowledge actually lives.</p>
+    <h2>Cheap is not worse. It is different work.</h2>
+    <p>The single most useful thing an experienced person knows, and the thing nobody tells a newcomer.</p>
+    <p class="note"><span class="ch">The Haiku rule</span>You cannot build a quant engine on <b>Claude Haiku 4.5</b>. You also should not be paying frontier prices to tag ten thousand support emails — and for <i>that</i>, Haiku is close to ideal. It is not a worse model. It is a model for different work.<br><br>This is why nothing on this page is ranked. A ranking tells you which model is "best", which is the wrong question and quietly pushes everyone toward the most expensive answer. <b>Fit tells you where each one shines and where it will let you down</b> — and once you have that, the cheap models stop looking like compromises and start looking like the right tool for two thirds of what you actually do.</p>
+  </section>
+
+  <section>
+    <h2>Then go and explore</h2>
+    <p class="note"><span class="ch">A starting point, not a verdict</span>Every name here is one you can use today, inside the budget you set. Try two. Swap one out when it disappoints you. The recommendation exists so you have somewhere to <i>begin</i> rather than forty open tabs and a chatbot conversation that goes nowhere — <b>not to close the question down</b>.<br><br>When you hand the summary to Claude or ChatGPT, it will tell you which keys to get and how to wire them up. That part is genuinely easy once you know the names. Knowing the names is the hard part, and that is the part this solves.</p>
   </section>
 
   <footer>
-    Scores as published on their respective leaderboards, September 2026. Prices are list, per million tokens.
-    Sources: <a href="https://llm-stats.com/benchmarks/swe-bench-verified">SWE-bench Verified</a> ·
-    <a href="https://www.morphllm.com/swe-bench-pro">SWE-bench Pro</a> ·
-    <a href="https://news.lmarena.ai/webdev-arena/">WebDev Arena</a> ·
-    <a href="https://www.designarena.ai/leaderboard">Design Arena</a> ·
-    <a href="https://openrouter.ai/moonshotai/kimi-k3">Kimi K3 on OpenRouter</a> ·
-    <a href="https://models.dev/models/zhipuai/glm-5.3/">GLM-5.3</a>
+    Monthly figures assume moderate use — about 1.5M input and 0.5M output tokens a month. Your real number
+    scales directly with volume. Prices are list, per million tokens, September 2026.
+    Sources: <a href="https://openrouter.ai/moonshotai/kimi-k3">Kimi K3</a> ·
+    <a href="https://models.dev/models/zhipuai/glm-5.3/">GLM-5.3</a> ·
+    <a href="https://docs.x.ai/developers/pricing">xAI</a> ·
+    <a href="https://artificialanalysis.ai/models/gpt-6-astra">GPT-6 Astra</a> ·
+    <a href="https://llm-stats.com/benchmarks/swe-bench-verified">SWE-bench Verified</a> ·
+    <a href="https://modelgrep.com/best/free">free models</a>
   </footer>
 
 </div>
 
 <script>
-const D = {
-  plan: {
-    title: "Planning and architecture",
-    evidence: "none",
-    src: "No public leaderboard measures planning quality on its own. The closest proxies are long-horizon agentic benchmarks, which measure whether a plan survived execution — not whether it was a good plan.",
-    verdict: { tone:"", head:"Your weakest-evidenced claim, and probably still right",
-      body:"Opus 5 topping SWE-bench Verified at 96% shows it finishes long multi-step work, which is circumstantial support for it planning well. But nothing isolates planning. This is the clearest case for the <b>Hands-on only</b> label: say it is your judgement, say why, and let people weigh it." },
-    best: 0,
-    models: [
-      { n:"Claude Opus 5", p:"Anthropic", pick:true, rows:["no direct benchmark","96.0 — SWE-bench Verified",96,"—","—","Long multi-step work that has to hold together"] },
-      { n:"Kimi K3", p:"Moonshot", rows:["no direct benchmark","88.3 — Terminal-Bench 2.1",88.3,"$2.85","$14.25","Long-horizon agent runs, big repos"] },
-      { n:"GLM-5.3", p:"Zhipu", rows:["no direct benchmark","—",0,"$1.40","$4.40","Cheap frontier planning, open weights"] }
-    ]
-  },
-  ui: {
-    title: "Building interfaces",
-    evidence: "split",
-    src: "Three leaderboards measure this and they do not agree. Frontend Code Arena puts Kimi K3 first. WebDev Arena puts Gemini 3.7 Flash first. Design Arena's agentic web dev board puts Inkling first.",
-    verdict: { tone:"agree", head:"Your call checks out — on one of the three boards",
-      body:"Kimi K3 is <b>#1 on Frontend Code Arena, ahead of Claude Fable 5</b>, which is exactly what you said. But Gemini 3.7 Flash leads WebDev Arena and Inkling leads Design Arena. All three are real. This is precisely why a recommendation has to name its benchmark instead of asserting a winner — and why the honest answer here is a <b>split decision</b>, not a pick." },
-    best: 0,
-    models: [
-      { n:"Kimi K3", p:"Moonshot", pick:true, rows:["#1 Frontend Code Arena","81.2 — FrontierSWE",81.2,"$2.85","$14.25","Frontend work, 1M context, open weights"] },
-      { n:"Gemini 3.7 Flash", p:"Google", rows:["#1 WebDev Arena","1588 — WebDev Arena Elo",100,"—","—","Fast web app generation"] },
-      { n:"Inkling", p:"Thinking Machines", rows:["#1 Design Arena","1257 — Agentic Web Dev Elo",79,"—","—","Design-led generation"] },
-      { n:"Claude Fable 5", p:"Anthropic", rows:["2nd, Frontend Code Arena","95.0 — SWE-bench Verified",95,"—","—","Correctness over flair"] }
-    ]
-  },
-  debug: {
-    title: "Debugging and fixing",
-    evidence: "strong",
-    src: "The best-measured job on this board. SWE-bench Verified and SWE-bench Pro both run real bug-fixing against real repositories with real tests.",
-    verdict: { tone:"", head:"This one the data contradicts",
-      body:"You said Codex 5.3 debugs better than Opus or Sonnet. <b>SWE-bench Verified has Claude Opus 5 first at 96%</b>, with Mythos 5 at 95.5% and Fable 5 at 95%; SWE-bench Pro has Fable 5.1 first at 81.2%. No Codex variant appears near the top of either.<br><br>Two ways you could still be right, and both matter for the product: you may be judging the <b>Codex CLI harness</b> rather than the model, and SWE-bench scores one-shot patches rather than the back-and-forth of sitting with a bug. If that is the gap, it is a real one worth naming — because it means the benchmark measures something adjacent to what you actually do." },
-    best: 0,
-    models: [
-      { n:"Claude Opus 5", p:"Anthropic", pick:true, rows:["#1 SWE-bench Verified","96.0 — SWE-bench Verified",96,"—","—","Hardest real-repo bug fixing"] },
-      { n:"Claude Fable 5.1", p:"Anthropic", rows:["#1 SWE-bench Pro","81.2 — SWE-bench Pro",81.2,"—","—","Longer, dirtier repositories"] },
-      { n:"Kimi K3", p:"Moonshot", rows:["Leads terminal work","88.3 — Terminal-Bench 2.1",88.3,"$2.85","$14.25","Iterating against logs and test output"] }
-    ]
-  },
-  value: {
-    title: "Coding without breaking the bank",
-    evidence: "split",
-    src: "Coding ability is well measured; value is not. No leaderboard ranks by quality-per-dollar, so the ordering below is price against published coding scores.",
-    verdict: { tone:"agree", head:"GLM-5.3 is the right shape of answer",
-      body:"At <b>$1.40 in / $4.40 out</b> with a 1M context and open weights, GLM-5.3 sits roughly half the price of Kimi K3's input and a third of its output. Your read holds. The thing worth adding to the product: <b>GLM-5.3-Flash at $0.15/$0.50</b> is nine times cheaper again, and most people asking this question do not know it exists." },
-    best: 0,
-    models: [
-      { n:"GLM-5.3", p:"Zhipu", pick:true, rows:["open weights, 1M context","released 14 Aug 2026",0,"$1.40","$4.40","Frontier-ish coding at mid-tier price"] },
-      { n:"GLM-5.3-Flash", p:"Zhipu", rows:["the one nobody mentions","—",0,"$0.15","$0.50","Bulk work, 9x cheaper than its big sibling"] },
-      { n:"DeepSeek V4.1 Flash", p:"DeepSeek", rows:["$0.003/M on cache hits","—",0,"$0.15","$0.60","Repeated prompts, schema filling"] }
-    ]
-  },
-  all: {
-    title: "Best all-rounder for the money",
-    evidence: "none",
-    src: "\"All-rounder\" is a judgement, not a measurement. No benchmark scores breadth. What can be verified is price, context and structured-output support.",
-    verdict: { tone:"", head:"Verified the prices, could not verify the name",
-      body:"You said DeepSeek Pro V4. I can confirm <b>V4 Flash</b> and <b>V4.1 Flash</b>, but found no \"Pro\" variant under that name — same problem as Lyken, and the same argument for a manual lane in the catalog. What is confirmed and genuinely strong: V4.1 Flash at $0.15/$0.60 off-peak, cache hits at $0.003/M, and a JSON schema in <span style=\"font-family:var(--mono);font-size:12px\">response_format</span>." },
-    best: 0,
-    models: [
-      { n:"DeepSeek V4.1 Flash", p:"DeepSeek", pick:true, rows:["JSON schema support","off-peak pricing, halves it",0,"$0.15","$0.60","The default cheap workhorse"] },
-      { n:"DeepSeek V4 Flash", p:"DeepSeek", rows:["via OpenRouter","much cheaper through the gateway",0,"$0.036","$0.071","Highest volume, lowest stakes"] },
-      { n:"Qwen3.7 Flash", p:"Alibaba", rows:["cheapest listed paid API","—",0,"$0.03","$0.13","Bulk classification, tagging"] }
-    ]
-  },
-  local: {
-    title: "Running it on your own machine",
-    evidence: "none",
-    src: "Open weights are a published fact; whether a model fits your GPU is arithmetic on parameter count and quantization. Neither is a leaderboard, and no public board ranks local models by what they can actually do on consumer hardware.",
-    verdict: { tone:"", head:"Open weights and runnable are not the same thing",
-      body:"This is the trap worth building a guard against. <b>Kimi K3 is open-weight and 2.8 trillion parameters</b> — nobody is running that on a desktop, at any quantization. A local recommendation is only real if it is checked against the VRAM the person actually has, which is why the hardware question earns its place in the Hug Me path. Qwen is the right family here precisely because it ships in sizes that fit." },
-    best: 0,
-    models: [
-      { n:"Qwen (smaller sizes)", p:"Alibaba", pick:true, rows:["fits consumer GPUs","sized by quantization",0,"$0","$0","Local work on hardware you own"] },
-      { n:"GLM-5.3", p:"Zhipu", rows:["open weights","serious hardware required",0,"$0","$0","Self-hosted, if you have the GPUs"] },
-      { n:"Kimi K3", p:"Moonshot", rows:["open weights — 2.8T params","not runnable locally",0,"$0","$0","Open, but cloud-only in practice"] }
-    ]
-  },
-  media: {
-    title: "Images and video",
-    evidence: "none",
-    src: "Nothing here is an LLM leaderboard. Image and video generation is judged by eye, and the tooling question (ComfyUI, which GGUF quantization) matters more than the model ranking does.",
-    verdict: { tone:"", head:"The honest answer is that this is a different product",
-      body:"ComfyUI plus a smaller GGUF is sound advice, and it is entirely <b>hands-on</b> — no benchmark backs it, and the useful recommendation is a workflow and a quantization rather than a model name and a token price. Worth shipping last, and worth labelling clearly so it does not borrow credibility from the benchmark-backed rows." },
-    best: 0,
-    models: [
-      { n:"ComfyUI + GGUF", p:"local workflow", pick:true, rows:["no public benchmark","judged by eye",0,"$0","$0","Local generation, quantization sized to your GPU"] }
-    ]
-  }
+// mo = estimated $/month at 1.5M in + 0.5M out. null where the model is free or unpriced.
+const M = {
+  free: [
+    { n:"Qwen — smaller sizes", p:"Alibaba, on your own machine", inp:"$0", out:"$0", mo:"$0",
+      good:"Running everything locally. No per-token cost, nothing leaves your machine.",
+      bad:"You pay in hardware instead. A big model needs a big GPU.", tags:["Open weights","Local","Sized to fit"] },
+    { n:"Inkling Small", p:"Thinking Machines", inp:"$0", out:"$0", mo:"$0", fresh:true,
+      good:"A free tier that still scores 32.2 on the Intelligence Index.",
+      bad:"Free tiers come with rate limits. Fine to learn on, risky to depend on.", tags:["Free tier","Via OpenRouter"] },
+    { n:"Nemotron 3 Ultra", p:"NVIDIA", inp:"$0", out:"$0", mo:"$0", fresh:true,
+      good:"Free experimentation without a card on file.",
+      bad:"Rate limited, and free tiers move without warning.", tags:["Free tier"] },
+    { n:"Ling 3.0 Flash Fin", p:"InclusionAI", inp:"$0", out:"$0", mo:"$0", fresh:true,
+      good:"Another genuinely free option worth trying before you spend anything.",
+      bad:"Thinly documented compared to the big names.", tags:["Free tier"] }
+  ],
+  low: [
+    { n:"Qwen3.7 Flash", p:"Alibaba", inp:"$0.03", out:"$0.13", mo:"~$0.11", fresh:true,
+      good:"Tagging, sorting and classifying at huge volume. The cheapest paid API listed.",
+      bad:"Not for multi-step reasoning. Give it small, clear jobs.", tags:["Cheapest paid","High volume"] },
+    { n:"DeepSeek V4 Flash", p:"DeepSeek, via OpenRouter", inp:"$0.036", out:"$0.071", mo:"~$0.09", fresh:true,
+      good:"Highest-volume, lowest-stakes work. Startlingly cheap through the gateway.",
+      bad:"Gateway pricing can move. Check before you build a budget on it.", tags:["Via OpenRouter"] },
+    { n:"GLM-5.3-Flash", p:"Zhipu", inp:"$0.15", out:"$0.50", mo:"~$0.48", fresh:true,
+      good:"Filling structured forms, pulling fields out of text, cheap everyday coding.",
+      bad:"The full GLM-5.3 is meaningfully stronger on hard problems.", tags:["Structured output"] },
+    { n:"DeepSeek V4.1 Flash", p:"DeepSeek", inp:"$0.15", out:"$0.60", mo:"~$0.53", fresh:true,
+      good:"Anything with a repeated prompt — cache hits bill at $0.003 a million.",
+      bad:"Peak-hours pricing is double the off-peak rate quoted here.", tags:["JSON schema","Cache $0.003"] },
+    { n:"Grok 4.1 Fast", p:"xAI", inp:"$0.20", out:"$0.50", mo:"~$0.55", fresh:true,
+      good:"Very long documents on a small budget — a 2 million token window at this price.",
+      bad:"Past 200K tokens the whole request bills at double rate.", tags:["2M context"] },
+    { n:"Gemini 3.1 Flash-Lite", p:"Google", inp:"$0.25", out:"$1.50", mo:"~$1.13",
+      good:"Fast work that involves images or screenshots as well as text.",
+      bad:"Output tokens cost six times the input. Watch chatty responses.", tags:["Multimodal","Fast"] },
+    { n:"Claude Haiku 4.5", p:"Anthropic", inp:"$1.00", out:"$5.00", mo:"~$4.00",
+      good:"High-volume classification, safety checks, quick edits, routing decisions.",
+      bad:"Not for a quant engine or deep reasoning. Wrong tool, not a weak one.", tags:["200K context","Reliable"] },
+    { n:"GLM-5.3", p:"Zhipu", inp:"$1.40", out:"$4.40", mo:"~$4.30", fresh:true,
+      good:"Serious coding at a fraction of frontier prices. 1M context, open weights.",
+      bad:"Needs real hardware if you want to self-host those open weights.", tags:["Open weights","1M context"] }
+  ],
+  mid: [
+    { n:"Grok 4.6", p:"xAI", inp:"$2.00", out:"$6.00", mo:"~$6.00", fresh:true,
+      good:"A capable generalist, with cached input at $0.50 a million.",
+      bad:"Doubles past a 200K-token prompt.", tags:["Cached $0.50"] },
+    { n:"Kimi K3", p:"Moonshot", inp:"$2.85", out:"$14.25", mo:"~$11.40", fresh:true,
+      good:"Building interfaces — it is #1 on Frontend Code Arena, ahead of Claude Fable 5. Also strong on long agent runs.",
+      bad:"Output is expensive. Open weights, but 2.8 trillion parameters — not runnable at home.", tags:["#1 frontend","1M context","Open weights"] },
+    { n:"GLM-5.3", p:"Zhipu", inp:"$1.40", out:"$4.40", mo:"~$4.30", fresh:true,
+      good:"Still the value pick at this tier — leaves budget spare for a second model.",
+      bad:"Not the top of any leaderboard. It is the one that does not make you choose.", tags:["Open weights","1M context"] },
+    { n:"Claude Haiku 4.5", p:"Anthropic", inp:"$1.00", out:"$5.00", mo:"~$4.00",
+      good:"Pair it with something stronger: Haiku for the volume, the other for the hard parts.",
+      bad:"On its own it will disappoint you on anything genuinely difficult.", tags:["Pairs well"] }
+  ],
+  top: [
+    { n:"GPT-6 Astra", p:"OpenAI", inp:"$10.00", out:"$50.00", mo:"~$40.00",
+      good:"The hardest end-to-end work. Intelligence 45.2, Coding 76.2, GPQA 89.5.",
+      bad:"Output at $50 a million punishes anything high-volume. Route the bulk elsewhere.", tags:["1.05M context","Flagship"] },
+    { n:"Claude Opus 5", p:"Anthropic", inp:"—", out:"—", mo:"—",
+      good:"Hardest real-repo debugging — 96% on SWE-bench Verified, top of the board.",
+      bad:"Overkill for simple, repetitive work you could run for cents.", tags:["#1 SWE-bench"] },
+    { n:"Kimi K3", p:"Moonshot", inp:"$2.85", out:"$14.25", mo:"~$11.40", fresh:true,
+      good:"Even with no ceiling, still the one to reach for on interface work.",
+      bad:"Expensive output if you let it ramble.", tags:["#1 frontend","Open weights"] },
+    { n:"GLM-5.3", p:"Zhipu", inp:"$1.40", out:"$4.40", mo:"~$4.30", fresh:true,
+      good:"Worth keeping even here — run it for everything that is not the hard part.",
+      bad:"You will notice the gap on genuinely difficult problems.", tags:["Open weights"] }
+  ]
 };
 
-const LABELS = ["Evidence","Headline score","","Price in / M","Price out / M","Best for"];
-const EV = {
-  strong: ["strong","Benchmark-backed"],
-  split:  ["split","Split decision"],
-  none:   ["none","Hands-on only"]
+const NOTES = {
+  free: "Free tiers are the right place to learn and the wrong place to build something people depend on. Rate limits are real, and free offerings get withdrawn. Move to the paid cheap tier the moment it matters — at these prices that step costs you about a coffee a year.",
+  low: "This tier is the actual answer for most projects, and almost nobody arrives believing that. Eight usable models, the priciest running about four dollars a month at moderate use. If you only know Claude and ChatGPT, this is the tab worth sitting with.",
+  mid: "The interesting move here is not buying one better model — it is running two. Something cheap for volume, something strong for the hard parts. That split is what experienced people actually do, and it is invisible from the outside.",
+  top: "Even with no budget ceiling, using one frontier model for everything is the expensive mistake. The bulk of most projects is simple work that a model costing a hundredth as much handles fine. Spend the money where it changes the outcome."
+};
+
+const HEADS = {
+  free: ["Four ways to start without spending anything", "Enough to build something real and find out what you actually need."],
+  low:  ["Eight models, none over $5 a month", "This is where the bang-for-buck lives, and where most people never look."],
+  mid:  ["Everything below, plus the specialists", "Enough room to run two models and let each do what it is good at."],
+  top:  ["No limit — which makes the choice harder, not easier", "The trap at this tier is paying frontier prices for work that does not need it."]
 };
 
 function pick(k) {
-  const d = D[k];
-  document.querySelectorAll('.tab').forEach(t => t.setAttribute('aria-selected', t.id === 't'+'-'+k));
-  document.getElementById('ph-title').textContent = d.title;
+  document.querySelectorAll('.tab').forEach(t => t.setAttribute('aria-selected', t.id === 't-' + k));
+  const list = M[k];
+  document.getElementById('c-big').textContent = HEADS[k][0];
+  const fresh = list.filter(m => m.fresh).length;
+  document.getElementById('c-sub').textContent =
+    HEADS[k][1] + (fresh ? '  ·  ' + fresh + ' of these are names most people have never tried.' : '');
 
-  const ev = EV[d.evidence];
-  document.getElementById('ph-badges').innerHTML =
-    '<span class="badge ' + ev[0] + '"><span class="dot"></span>' + ev[1] + '</span>';
-  document.getElementById('ph-src').innerHTML = d.src;
+  document.getElementById('grid').innerHTML = list.map(m => `
+    <div class="card${m.fresh ? ' fresh' : ''}">
+      <div class="card-top">
+        <span class="flag${m.fresh ? '' : ' spacer'}"${m.fresh ? '' : ' aria-hidden="true"'}>Worth discovering</span>
+        <span class="mname">${m.n}</span>
+        <span class="mprov">${m.p}</span>
+      </div>
+      <div class="price">
+        <span class="rate">${m.inp} in / ${m.out} out</span>
+        <span class="mo">${m.mo}${m.mo === '—' || m.mo === '$0' ? '' : '/mo'}</span>
+      </div>
+      <div class="fit">
+        <div><span class="lab">Shines at</span><span class="good">${m.good}</span></div>
+        <div><span class="lab">Not for</span><span class="bad">${m.bad}</span></div>
+      </div>
+      <div class="tags">${m.tags.map(t => `<span class="tag">${t}</span>`).join('')}</div>
+    </div>`).join('');
 
-  const n = d.models.length;
-  document.getElementById('cg').innerHTML =
-    '<col style="width:150px">' + d.models.map((m,i) =>
-      '<col' + (i === d.best ? ' class="best"' : '') + '>').join('');
-
-  document.getElementById('hrow').innerHTML =
-    '<th class="rowlab">Job</th>' + d.models.map(m =>
-      '<th>' + (m.pick ? '<span class="pick">Our pick</span>'
-                              : '<span class="pick-spacer" aria-hidden="true">Our pick</span>') +
-      '<span class="mname">' + m.n + '</span><span class="mprov">' + m.p + '</span></th>').join('');
-
-  let html = '';
-  [0,1,3,4,5].forEach(r => {
-    html += '<tr><th class="rowlab">' + LABELS[r] + '</th>';
-    d.models.forEach(m => {
-      const v = m.rows[r];
-      const isNum = (r === 3 || r === 4);
-      if (v === '—' || v === 'no direct benchmark' || v === 'not runnable locally') {
-        html += '<td><span class="na">' + v + '</span></td>';
-      } else if (r === 1) {
-        const bar = m.rows[2] > 0
-          ? '<span class="bar"><i style="width:' + Math.min(100, m.rows[2]) + '%"></i></span>' : '';
-        html += '<td><span class="num">' + v + '</span>' + bar + '</td>';
-      } else {
-        html += '<td' + (isNum ? ' class="num"' : '') + '>' + v + '</td>';
-      }
-    });
-    html += '</tr>';
-  });
-  document.getElementById('brow').innerHTML = html;
-
-  const vd = d.verdict;
-  document.getElementById('verdict').className = 'callout ' + (vd.tone || '');
-  document.getElementById('verdict').innerHTML =
-    '<span class="ch">' + vd.head + '</span>' + vd.body;
+  document.getElementById('tiernote').innerHTML =
+    '<span class="ch">About this tier</span>' + NOTES[k];
 }
-pick('plan');
+pick('free');
 </script>

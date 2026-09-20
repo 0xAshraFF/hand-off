@@ -330,3 +330,56 @@ This is what makes the curated, experience-derived picks *safe* to ship alongsid
 measured ones. Without it, the whole board inherits the credibility of its weakest row.
 
 Prototype: `docs/model-board.html`.
+
+---
+
+# Revision 5 — budget first, fit not ranking, discovery is the product
+
+## The correction
+
+Revision 4 had the wrong posture. It adjudicated — "our pick", winner highlighting,
+"the data contradicts you". That closes a question down. The product is supposed to
+open one up.
+
+Three corrections, all from the same idea:
+
+**1. Budget is the primary axis, not job.** Inside a budget, every model is a
+legitimate option. The app's job is to show the whole affordable set, not to crown one.
+
+**2. Fit replaces ranking.** Every model gets *shines at* and *not for*. Nothing is a
+loser. Claude Haiku 4.5 cannot build a quant engine and is close to ideal for tagging
+ten thousand emails — it is not a worse model, it is a model for different work. A
+ranking answers "which is best", which is the wrong question and quietly pushes
+everyone toward the most expensive answer.
+
+**3. Discovery is the actual value.** Someone who arrives knowing only Claude should
+leave knowing Qwen, GLM, Kimi, DeepSeek, Grok and Inkling. The metric worth optimizing
+is **how many new names a visitor leaves with**, and it should be on the page: "6 of
+these are names most people have never tried."
+
+## What this changes in the build
+
+- The result screen leads with the affordable set, not a single prescription.
+- Every card carries a *not for* line. A recommendation with no stated limitation is
+  not trustworthy and gives the reader nothing to reason with.
+- Non-mainstream models get an explicit discovery marker. Surfacing them is the
+  product, so it should be visible rather than incidental.
+- The evidence labels from revision 4 survive, but demoted — they annotate a claim,
+  they do not structure the page.
+- The copy must never sound final. "A starting point, not a verdict."
+
+## The pairing insight belongs in the product
+
+At every tier above the cheapest, the experienced move is not buying one better model —
+it is running two: something cheap for volume, something strong for the hard parts.
+That split is exactly what a newcomer cannot see from outside, and it is what the
+per-job spec sheet already encodes. Say it in words as well as in the table.
+
+## Verified this round
+
+- **GPT-6 Astra** is real — OpenAI's flagship, released 4 Sept 2026, $10/$50 per M,
+  1.05M context. Intelligence 45.2, Coding 76.2, GPQA 89.5.
+- **Grok**: 4.6 at $2/$6 (cached $0.50), 4.3 at $1.25/$2.50, 4.1 Fast at $0.20/$0.50
+  with a 2M context. No Grok 5 as of Sept 2026. Requests over 200K tokens bill double.
+
+Prototype: `docs/model-board.html`.
