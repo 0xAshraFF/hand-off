@@ -1,0 +1,301 @@
+<title>Handoff in One Page</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500;700&display=swap">
+<style>
+  :root {
+    --paper:#EEF1EF; --surface:#FBFCFB; --surface-2:#F4F6F4;
+    --ink:#12171A; --muted:#5B686D; --line:#D2D9D5;
+    --teal:#0B7D72; --teal-wash:#E4F1EF;
+    --amber:#A75B0C; --amber-wash:#F8EDE1;
+    --display:"Bricolage Grotesque","Trebuchet MS",sans-serif;
+    --body:"Instrument Sans",-apple-system,"Segoe UI",sans-serif;
+    --mono:"JetBrains Mono",ui-monospace,Menlo,monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --paper:#0D1113; --surface:#161B1E; --surface-2:#1B2124;
+      --ink:#E9EEEB; --muted:#93A09F; --line:#2A3235;
+      --teal:#45C3B4; --teal-wash:#12292A;
+      --amber:#E39A4A; --amber-wash:#2B2015;
+    }
+  }
+  :root[data-theme="dark"] {
+    --paper:#0D1113; --surface:#161B1E; --surface-2:#1B2124;
+    --ink:#E9EEEB; --muted:#93A09F; --line:#2A3235;
+    --teal:#45C3B4; --teal-wash:#12292A;
+    --amber:#E39A4A; --amber-wash:#2B2015;
+  }
+  body {
+    background: var(--paper); color: var(--ink);
+    font-family: var(--body); font-size: 15.5px; line-height: 1.6;
+    margin: 0; padding-inline: 20px; padding-block: 48px 80px;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 880px; margin: 0 auto; display: flex; flex-direction: column; gap: 44px; }
+  .eyebrow {
+    font-family: var(--mono); font-size: 11px; letter-spacing: .13em;
+    text-transform: uppercase; color: var(--muted); margin: 0 0 12px;
+  }
+  h1 {
+    font-family: var(--display); font-weight: 700; font-size: clamp(32px, 5.6vw, 50px);
+    line-height: 1.02; letter-spacing: -.024em; margin: 0 0 18px; text-wrap: balance;
+  }
+  .lede { font-size: 18px; color: var(--muted); max-width: 60ch; margin: 0; }
+  .lede strong { color: var(--ink); font-weight: 600; }
+  h2 {
+    font-family: var(--display); font-weight: 700; font-size: 25px;
+    letter-spacing: -.017em; margin: 0 0 6px; text-wrap: balance;
+  }
+  section > p.intro { color: var(--muted); max-width: 64ch; margin: 0 0 20px; }
+  p { margin: 0 0 14px; }
+
+  .problem {
+    border-left: 3px solid var(--amber); background: var(--surface);
+    padding: 20px 24px; border-radius: 0 10px 10px 0;
+  }
+  .problem p { margin: 0 0 12px; }
+  .problem p:last-child { margin: 0; }
+  .problem b { color: var(--ink); font-weight: 600; }
+  .problem { color: var(--muted); }
+
+  ol.flow { list-style: none; counter-reset: s; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+  ol.flow li {
+    counter-increment: s; position: relative; padding: 14px 18px 14px 56px;
+    border: 1px solid var(--line); border-radius: 10px; background: var(--surface);
+    font-size: 14.5px; color: var(--muted);
+  }
+  ol.flow li::before {
+    content: counter(s); position: absolute; inset-inline-start: 18px; top: 14px;
+    font-family: var(--mono); font-size: 12px; font-weight: 700;
+    width: 22px; height: 22px; border-radius: 6px;
+    background: var(--ink); color: var(--paper);
+    display: grid; place-items: center;
+  }
+  ol.flow li b { color: var(--ink); font-weight: 600; display: block; margin-bottom: 2px; font-size: 15.5px; }
+  ol.flow li.away { border-style: dashed; }
+  ol.flow li.away::before { background: var(--amber); color: var(--paper); }
+  ol.flow li.ours::before { background: var(--teal); color: var(--paper); }
+
+  .rules { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 13px; }
+  .rule {
+    border: 1px solid var(--line); border-radius: 11px; background: var(--surface);
+    padding: 16px 18px;
+  }
+  .rule h3 {
+    font-family: var(--display); font-size: 16px; font-weight: 700;
+    letter-spacing: -.01em; margin: 0 0 5px; text-wrap: balance;
+  }
+  .rule p { font-size: 13.5px; color: var(--muted); margin: 0; }
+
+  .diffs { display: flex; flex-direction: column; gap: 12px; }
+  .diff {
+    display: grid; grid-template-columns: 116px 1fr; gap: 18px; align-items: start;
+    padding-bottom: 12px; border-bottom: 1px solid var(--line);
+  }
+  .diff:last-child { border-bottom: none; padding-bottom: 0; }
+  .diff .k {
+    font-family: var(--mono); font-size: 10.5px; letter-spacing: .09em;
+    text-transform: uppercase; color: var(--teal); padding-top: 3px;
+  }
+  .diff .v { font-size: 14.5px; color: var(--muted); }
+  .diff .v b { color: var(--ink); font-weight: 600; }
+  @media (max-width: 560px) { .diff { grid-template-columns: 1fr; gap: 4px; } }
+
+  .tablewrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 11px; background: var(--surface); }
+  table { border-collapse: collapse; width: 100%; min-width: 440px; font-size: 14px; }
+  th, td { text-align: left; padding: 10px 15px; border-bottom: 1px solid var(--line); }
+  th {
+    font-family: var(--mono); font-size: 10.5px; letter-spacing: .1em; text-transform: uppercase;
+    color: var(--muted); font-weight: 400; background: var(--surface-2);
+  }
+  tbody tr:last-child td { border-bottom: none; }
+  td:last-child { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+  .hi td { color: var(--teal); font-weight: 600; }
+
+  .cols { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 24px; }
+  .cols h3 {
+    font-family: var(--mono); font-size: 10.5px; letter-spacing: .1em; text-transform: uppercase;
+    color: var(--muted); font-weight: 400; margin: 0 0 8px;
+  }
+  .cols ul { margin: 0; padding-left: 18px; font-size: 14px; color: var(--muted); }
+  .cols li { margin-bottom: 5px; }
+  .cols li b { color: var(--ink); font-weight: 600; }
+
+  .note {
+    border-left: 3px solid var(--teal); background: var(--surface);
+    padding: 16px 20px; border-radius: 0 9px 9px 0; font-size: 14.5px; color: var(--muted);
+  }
+  .note b { color: var(--ink); font-weight: 600; }
+  footer { font-size: 12.5px; color: var(--muted); border-top: 1px solid var(--line); padding-top: 20px; }
+</style>
+
+<div class="wrap">
+
+  <header>
+    <p class="eyebrow">Handoff · product summary · 20 September 2026</p>
+    <h1>A prescription for which AI models to use, before you spend anything finding out</h1>
+    <p class="lede">You describe what you are building. It tells you <strong>which model to use for each task</strong>, what it will actually cost in your language, and hands you a document your own chatbot can build from. Free, no account for the main path.</p>
+  </header>
+
+  <section>
+    <h2>The problem</h2>
+    <div class="problem">
+      <p>If the only names you know are Claude and ChatGPT, you are paying frontier prices for work a model costing <b>one hundredth</b> as much handles perfectly well. The same five-task project runs anywhere from <b>$0.25 to $90 a month</b> depending only on which models you pick.</p>
+      <p>Your assistant will not tell you this. Not from malice — it simply has a home team and no reason to survey the competition. <b>Ask a chatbot what model to use and you get its own.</b></p>
+      <p>Meanwhile the people who do know — that Kimi builds better interfaces, that Haiku is ideal for bulk and useless for a quant engine — learned it by burning hours and money. <b>None of that should have to be earned twice.</b></p>
+    </div>
+  </section>
+
+  <section>
+    <h2>How it works</h2>
+    <p class="intro">Seven steps. The expensive one is done by a model the user already pays for.</p>
+    <ol class="flow">
+      <li><b>Copy our prompt</b> One button. "Give me a project handoff, task by task."</li>
+      <li class="away"><b>Their own chatbot decomposes the project</b> It already has the context, it runs on their subscription, and it does the hard part better than any form could. Costs us nothing.</li>
+      <li><b>Paste the task list back</b> Parsed into an editable list, up to 12 tasks, so they see exactly what will be sent.</li>
+      <li><b>Budget — optional</b> Three doors: a slider if they know, a usage question in human units if they do not, or no ceiling at all.</li>
+      <li><b>What language must it work in?</b> Not the interface language. This one changes the answer.</li>
+      <li class="ours"><b>One backend call</b> A cheap model sorts each task into a job type. Our own code then scores last night's catalog and picks. About $0.0005.</li>
+      <li class="ours"><b>Results, then the handoff</b> Every task with a pick, a cheaper option and a stronger one. Then a document, written in their language, assembled in code — ready to paste back where they started.</li>
+    </ol>
+  </section>
+
+  <section>
+    <h2>The rules that settle arguments</h2>
+    <div class="rules">
+      <div class="rule">
+        <h3>The model classifies, the code selects</h3>
+        <p>No language model ever names a model a user sees. Ask one to pick and it answers from training data — stale prices, invented numbers. It returns job types from a closed enum; our scorer does the rest.</p>
+      </div>
+      <div class="rule">
+        <h3>Price first, budget second</h3>
+        <p>Nobody can budget for something they have never bought. Show the cost, then let budget filter a number they can see.</p>
+      </div>
+      <div class="rule">
+        <h3>Fit, not ranking</h3>
+        <p>Every model gets a "shines at" and a "not for". Nothing is a loser. A ranking answers "which is best", which is the wrong question and quietly pushes everyone toward the priciest answer.</p>
+      </div>
+      <div class="rule">
+        <h3>Nothing is a ruling</h3>
+        <p>Every pick ships with a cheaper option, a stronger one, and a stated limitation. It is a starting point for exploring, not a verdict that closes the question.</p>
+      </div>
+      <div class="rule">
+        <h3>Reduce the asking, never the answer</h3>
+        <p>Fewer questions is always a fair trade. A thinner recommendation never is — the first-timer needs the prescription most.</p>
+      </div>
+      <div class="rule">
+        <h3>Prefer the single key</h3>
+        <p>When two models score close, the one on an OpenRouter key wins. The other costs a signup nobody planned for.</p>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>What makes it different</h2>
+    <div class="diffs">
+      <div class="diff">
+        <div class="k">Honest evidence</div>
+        <div class="v">Every recommendation is labelled <b>benchmark-backed</b>, <b>split decision</b> (credible benchmarks disagree, both shown), or <b>hands-on only</b>. No comparison site tells you when it ran out of numbers and started guessing — and that admission is what makes the rest trustworthy.</div>
+      </div>
+      <div class="diff">
+        <div class="k">Real prices</div>
+        <div class="v">Tokenizers are English-trained, so Bengali, Hindi and Arabic cost <b>2–4× more tokens</b> for the same content. Every pricing page on the internet quotes the English number. We apply the multiplier, so a $5 budget means $5.</div>
+      </div>
+      <div class="diff">
+        <div class="k">Discovery</div>
+        <div class="v">Arrive knowing two names, leave knowing nine. Qwen, GLM, Kimi, DeepSeek, Grok, Inkling — surfaced deliberately, counted on the page, because putting <b>unknown names in front of people is the product</b>, not a side effect.</div>
+      </div>
+      <div class="diff">
+        <div class="k">Neutrality</div>
+        <div class="v">No home team. The survey runs once, across everything, and hands the result back to the assistant they were already using — which is perfectly happy to <b>use</b> those models once told they exist.</div>
+      </div>
+      <div class="diff">
+        <div class="k">Language</div>
+        <div class="v">The best model for a Bengali support bot is frequently not the English leaderboard leader. Backed by real per-language data for <b>16 languages</b>, Bangla among them.</div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>What it costs to run</h2>
+    <p class="intro">One classification call per recommendation — roughly 1,500 tokens in, 400 out, on a cheap flash model.</p>
+    <div class="tablewrap">
+      <table>
+        <thead><tr><th>Scale</th><th>Annual model spend</th></tr></thead>
+        <tbody>
+          <tr><td>10,000 users</td><td>$33</td></tr>
+          <tr><td>100,000 users</td><td>$333</td></tr>
+          <tr><td>1,000,000 users</td><td>$3,330</td></tr>
+          <tr class="hi"><td>Vercel + Supabase, before a single call</td><td>~$540</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="note" style="margin-top:16px"><b>The infrastructure costs more than the intelligence until roughly 150,000 users.</b> So the free-tier cap — three runs a day — exists to stop scripted abuse, not to protect a budget. And most users never reach it: the tile path needs no model call at all.</p>
+  </section>
+
+  <section>
+    <h2>Shape of the build</h2>
+    <div class="cols">
+      <div>
+        <h3>Stack</h3>
+        <ul>
+          <li>Next.js on Vercel</li>
+          <li>Supabase — Google sign-in, Postgres</li>
+          <li>Nightly sync: Artificial Analysis for scores, OpenRouter for live prices</li>
+          <li>Deterministic scorer, no model in the loop</li>
+        </ul>
+      </div>
+      <div>
+        <h3>In version one</h3>
+        <ul>
+          <li>The whole flow, <b>logged out</b></li>
+          <li>Cloud models across every provider</li>
+          <li>Language-aware picks and pricing</li>
+          <li>Handoff as chat prose, <code>AGENTS.md</code> or <code>models.json</code></li>
+          <li>A manual lane for models the feeds miss</li>
+        </ul>
+      </div>
+      <div>
+        <h3>Deliberately later</h3>
+        <ul>
+          <li><b>Hugging Face and GGUF</b> — best differentiator, slowest to get right, must not block launch</li>
+          <li>Accounts and saved plans</li>
+          <li>Images and video — no benchmark backs it</li>
+          <li>Community trends — needs volume to say anything true</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Still open</h2>
+    <div class="cols">
+      <div>
+        <h3>Before building</h3>
+        <ul>
+          <li><b>Artificial Analysis terms</b> — redistributing their scores is now load-bearing, not incidental. Confirm in writing.</li>
+        </ul>
+      </div>
+      <div>
+        <h3>Before launch</h3>
+        <ul>
+          <li>Per-user daily cap and a hard spend ceiling</li>
+          <li>Whether the catalog includes <b>subscriptions and tools</b>, not only raw APIs</li>
+        </ul>
+      </div>
+      <div>
+        <h3>Worth watching</h3>
+        <ul>
+          <li>Where people drop off at API-key setup — the one place the handoff hands responsibility back</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    Handoff · summarised from <span style="font-family:var(--mono)">docs/architecture-decisions.md</span> revisions 1–9 ·
+    companion documents: the flow diagram and the build spec · 20 September 2026
+  </footer>
+
+</div>
