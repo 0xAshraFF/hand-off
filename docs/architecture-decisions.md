@@ -383,3 +383,96 @@ per-job spec sheet already encodes. Say it in words as well as in the table.
   with a 2M context. No Grok 5 as of Sept 2026. Requests over 200K tokens bill double.
 
 Prototype: `docs/model-board.html`.
+
+---
+
+# Revision 6 — the real flow, and the mistake that would gut it
+
+## The flow as specified
+
+1. User copies **our prompt** — e.g. *"give me a project handoff task-wise in a bulleted
+   list"* — into the chatbot they are already using.
+2. Their chatbot, which already has their project context, returns a task list.
+3. They paste that list into our description field.
+4. **One backend call** takes the task list plus the budget and returns a per-task
+   recommendation, plus a cheaper variant and a costlier one.
+5. UI shows it. User tweaks.
+6. A **handoff document** is generated that tells their chatbot which model to use for
+   which task, and where to get the keys.
+
+## Why borrowing their chatbot is the best idea in the design
+
+Project decomposition is the expensive, error-prone part, and this hands it to a model
+the user is already paying for, which already knows their project. We get a
+**pre-structured bulleted list** instead of free prose — far easier to parse, far
+cheaper to process, and no decomposition cost on our side at all.
+
+## The mistake: never let the model choose the models
+
+The tempting version of step 4 is to prompt DeepSeek with *"pick models for these tasks
+within this budget"*. **Do not do this.** It would answer from training data — stale
+prices, missing new releases, confidently invented numbers. That is precisely the
+`src/data/models.ts` failure the whole product exists to correct, reintroduced at the
+core and harder to see.
+
+The split that keeps it honest:
+
+- **The LLM classifies.** For each task it returns a job type (UI work, debugging, bulk
+  processing, reasoning, vision, long-context) and a rough volume estimate. It returns a
+  fixed enum. **It never names a model.**
+- **Our scoring function picks.** It reads the nightly catalog, filters by budget and
+  constraints, and selects. Deterministic, auditable, current as of last night.
+
+If a model must be involved in selection, the only safe form is to pass the catalog into
+the prompt and constrain it to choose from that list — more tokens, still drift-prone.
+Classification plus deterministic scoring is cheaper and does not drift.
+
+## Collapse the two calls into one
+
+A second call to write the handoff document is not needed. The document is
+task → model → why → keys, which is template assembly. Ask **call one** for the
+per-task rationale sentences alongside the classification, then build the document in
+code.
+
+One call instead of two: half the cost, half the latency, one failure mode instead of
+two, and the output stays deterministic and testable.
+
+## The OpenRouter key deserves to be a first-class feature
+
+"One OpenRouter key probably gets you all the models needed" collapses the worst part of
+the experience — sign up to five providers, five billing pages, five sets of docs — into
+a single step. This should be a rule in the recommender, not a footnote in the doc:
+
+- Store `available_on_openrouter` on every catalog row.
+- **Prefer** models reachable through the single key when scores are close.
+- **Flag** any recommendation that forces a separate account, so the cost of that extra
+  signup is visible while choosing.
+- The handoff leads with "get one OpenRouter key", and only then lists exceptions.
+
+Confirmed on OpenRouter so far: Kimi K3, DeepSeek V4 Flash, GPT-6 Astra, GLM-5.3.
+Coverage needs verifying per row during the nightly sync rather than assumed.
+
+## The 150-word cap no longer fits
+
+The cap was written for a free-text description. The input is now a pasted task list,
+which will routinely run 100–400 words. Replace it:
+
+- Cap by **structure**: up to ~12 tasks, each truncated to a sensible length.
+- Keep a total ceiling for abuse and injection containment, nearer 800 words.
+- Parse the bullets client-side and show them back as an editable list, so the user sees
+  what will be sent and can delete noise before it goes.
+
+The injection rules from revision 3 still apply, and matter more now: this text came
+from another model, and it is headed back into one.
+
+## Positioning: your chatbot is not a market survey
+
+The sharpest framing in the project. An assistant asked "what model should I use" has a
+home-team pull and no reason to survey competitors; the user's default move therefore
+never surfaces Kimi, GLM, Qwen or Grok. Handoff does that survey once, neutrally, and
+hands the result back to the same assistant — which is perfectly happy to *use* those
+models once told they exist.
+
+Keep the claim accurate: it is about defaults and incentives, not a conspiracy. Stated
+plainly it is strong enough, and overstating it is the one thing that would undercut a
+product whose entire value is being the trustworthy neutral party.
