@@ -247,16 +247,33 @@ No preamble, no explanation, no code.</code></pre>
 
   <div class="step">
     <span class="num">Screen 03</span>
-    <h3>What can you spend?</h3>
-    <h4>On screen</h4>
+    <h3>What can you spend? &mdash; and the three ways to answer</h3>
+    <h4>Why this screen is skippable</h4>
+    <p>Asking for a budget first assumes the user knows what things cost. A newcomer does not and cannot &mdash; it depends on volume they have never measured. The same five-task project ranges from <b>$0.25 to $90 a month</b> depending only on model choice. Nobody guesses their way onto a 360&times; scale.</p>
+    <p>So this screen is <b>optional</b>, and the results screen leads with the price. Budget becomes a filter applied to a number they can see, which is how people buy anything they have not bought before.</p>
+    <h4>Door 1 &mdash; "I know what I can spend"</h4>
     <ul>
       <li>A slider, plus a <b>per month / per run</b> toggle.</li>
-      <li>Label phrased in money and plain words, never tokens. At zero: <i>"Free tiers and models you run yourself."</i></li>
-      <li>Four preset chips so nobody has to drag: <code>$0</code>, <code>$5</code>, <code>$20</code>, <code>no limit</code>.</li>
+      <li>Phrased in money and plain words, never tokens. At zero: <i>"Free tiers and models you run yourself."</i></li>
+      <li>Preset chips so nobody has to drag: <code>$0</code>, <code>$5</code>, <code>$20</code>.</li>
     </ul>
+    <h4>Door 2 &mdash; "I'm not sure"</h4>
+    <p>Do not ask for money. Ask about <b>use, in units they recognise</b>:</p>
+    <ul>
+      <li><i>Just me, experimenting</i> &mdash; ~50 runs a month</li>
+      <li><i>Me and a few other people</i> &mdash; ~500</li>
+      <li><i>Real users, small</i> &mdash; ~5,000</li>
+      <li><i>Real users, growing</i> &mdash; ~50,000</li>
+    </ul>
+    <p>From that, the task list, and the script multiplier, derive a <b>range</b> and offer it as their budget, editable: <i>"Around $2&ndash;9 a month at that usage."</i></p>
+    <h4>Door 3 &mdash; "No limit"</h4>
+    <p>Not the absence of a constraint &mdash; a different objective. The scorer flips to <b>quality first, cost as tiebreak only</b>, and the results screen annotates every row where the cheap option is genuinely equivalent, with the reason: no measurable quality gain, and lower latency. Burning a frontier model on trivial work makes the whole thing slower for nothing, which is worth knowing even when money is not the issue.</p>
+    <p>The line is <i>"you could drop $60 a month here and lose nothing measurable"</i>, never <i>"are you sure?"</i>. Respect the budget; just tell them where it buys nothing.</p>
     <h4>Stored</h4>
-    <p><code>budget_amount</code>, <code>budget_period</code>.</p>
+    <p><code>budget_amount</code> (nullable), <code>budget_period</code>, <code>budget_mode</code> as <code>fixed | estimated | unlimited</code>, and <code>usage_tier</code> when estimated.</p>
   </div>
+
+  <p class="note warn"><span class="ch">Two honesty rules for every derived figure</span><b>Ranges, never points.</b> Token use varies far too much for <code>$7.43</code> to be anything but false precision that will bite someone later. Show a band, always.<br><br><b>Name the real cost driver.</b> For newcomers it is not volume, it is <b>retries and loops</b> &mdash; an agent that retries on failure, or a loop that does not terminate, can multiply a bill tenfold overnight, and it is the most common way a first project produces a shocking invoice. One plain line beside the estimate is worth more than another decimal place: <i>"This assumes things work first time. A loop that retries can cost several times this &mdash; set a spend limit with your provider."</i></p>
 
   <div class="step">
     <span class="num">Screen 04</span>

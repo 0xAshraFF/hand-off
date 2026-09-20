@@ -608,3 +608,88 @@ the correct behaviour.
 
 It also reframes what the language selector is. It began as localisation, became a
 recommendation input, and is now a **correctness requirement**.
+
+---
+
+# Revision 9 — budget comes after the price, not before it
+
+## The problem with asking first
+
+"What can you spend?" assumes the user knows what things cost. A newcomer does not, and
+cannot — the answer depends on volume they have never measured, in units they have never
+seen. Asking them to guess produces a number they invented, which we then treat as a
+constraint and optimise against. Garbage in, confidently priced.
+
+The same five-task project, at moderate use (~500 runs a month, ~8k in / 2k out per run):
+
+| Model | Per month |
+|---|---|
+| Qwen3.7 Flash | $0.25 |
+| GLM-5.3-Flash | $1.10 |
+| Claude Haiku 4.5 | $9.00 |
+| GLM-5.3 | $10.00 |
+| Kimi K3 | $25.65 |
+| GPT-6 Astra | $90.00 |
+
+**A 360× spread on an identical project.** Nobody can guess their way onto that scale. And
+in Bengali, with ~3× token inflation, GPT-6 Astra on that same project is **$270 a month**.
+
+## The fix: invert it
+
+Make the budget question **optional and skippable**, and lead the results screen with the
+price. Budget then becomes a **filter applied to a number the user can see**, rather than a
+guess made before they have seen anything.
+
+This is how people buy things they have never bought before: find out the price, then decide
+what they are willing to pay. It also collapses three separate cases into one mechanism.
+
+## Three entry states, one control
+
+Screen 03 offers three doors, and all of them reach the same results screen.
+
+**1. "I know what I can spend."** The slider, as specced. Unchanged.
+
+**2. "I'm not sure."** Do not ask for money. Ask about **use, in human units**:
+
+- *Just me, experimenting* — around 50 runs a month
+- *Me and a few other people* — around 500
+- *Real users, small* — around 5,000
+- *Real users, growing* — around 50,000
+
+From that plus the task list and the script multiplier, derive a **range** and show it:
+*"Around $2–9 a month at that usage."* Offer it as their budget, editable. Never a point
+estimate — token use varies far too much for `$7.43` to be anything but false precision that
+will bite them later.
+
+**3. "No limit."** Serve them properly rather than treating it as the absence of a
+constraint. See below.
+
+## Serving the unconstrained user
+
+The objective changes, the product does not go away. With no ceiling, the scorer optimises
+**quality first, cost only as a tiebreak** — the opposite weighting, not a disabled filter.
+
+But the genuinely valuable thing to hand someone with money is the thing they cannot easily
+find out: **where spending more buys nothing.**
+
+If Qwen3.7 Flash tags the bulk just as well as GPT-6 Astra, that matters even when money is
+no object — the cheap model is also *faster*, and burning a frontier model's latency on
+trivial work makes the whole thing slower for no gain. So the no-limit view shows the
+frontier picks and annotates the rows where the cheap option is equivalent, with the reason
+(no measurable quality gain, and lower latency).
+
+That is respectful of someone with a budget, rather than lecturing them about thrift. The
+line to use is *"you could drop $60 a month here and lose nothing measurable"*, not *"are
+you sure?"*
+
+## Two honesty requirements
+
+**Ranges, never points.** Every derived figure is a band. The UI must never imply a
+precision the estimate does not have.
+
+**Name the real cost driver.** For newcomers it is not volume, it is **retries and loops**.
+An agent that retries on failure, or a loop that does not terminate, can multiply a bill
+tenfold overnight — and that is the single most common way a first project produces a
+shocking invoice. A one-line warning beside the estimate, in plain words, is worth more than
+another decimal place: *"This assumes things work first time. A loop that retries can cost
+several times this — set a spend limit with your provider."*
