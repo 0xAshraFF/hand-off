@@ -1,0 +1,367 @@
+<title>Handoff Build Spec</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500;700&display=swap">
+<style>
+  :root {
+    --paper:#EEF1EF; --surface:#FBFCFB; --surface-2:#F4F6F4; --code:#12171A; --code-ink:#DCE5E1;
+    --ink:#12171A; --muted:#5B686D; --line:#D2D9D5;
+    --teal:#0B7D72; --teal-wash:#E4F1EF;
+    --amber:#A75B0C; --amber-wash:#F8EDE1;
+    --display:"Bricolage Grotesque","Trebuchet MS",sans-serif;
+    --body:"Instrument Sans",-apple-system,"Segoe UI",sans-serif;
+    --mono:"JetBrains Mono",ui-monospace,Menlo,monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --paper:#0D1113; --surface:#161B1E; --surface-2:#1B2124; --code:#080B0D; --code-ink:#C8D4CF;
+      --ink:#E9EEEB; --muted:#93A09F; --line:#2A3235;
+      --teal:#45C3B4; --teal-wash:#12292A;
+      --amber:#E39A4A; --amber-wash:#2B2015;
+    }
+  }
+  :root[data-theme="dark"] {
+    --paper:#0D1113; --surface:#161B1E; --surface-2:#1B2124; --code:#080B0D; --code-ink:#C8D4CF;
+    --ink:#E9EEEB; --muted:#93A09F; --line:#2A3235;
+    --teal:#45C3B4; --teal-wash:#12292A;
+    --amber:#E39A4A; --amber-wash:#2B2015;
+  }
+  body {
+    background: var(--paper); color: var(--ink);
+    font-family: var(--body); font-size: 15.5px; line-height: 1.62;
+    margin: 0; padding-inline: 20px; padding-block: 44px 80px;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 820px; margin: 0 auto; }
+  .eyebrow {
+    font-family: var(--mono); font-size: 11px; letter-spacing: .13em;
+    text-transform: uppercase; color: var(--muted); margin: 0 0 10px;
+  }
+  h1 {
+    font-family: var(--display); font-weight: 700; font-size: clamp(30px, 5.4vw, 44px);
+    line-height: 1.05; letter-spacing: -.022em; margin: 0 0 16px; text-wrap: balance;
+  }
+  .lede { font-size: 17px; color: var(--muted); margin: 0 0 14px; }
+  .lede strong { color: var(--ink); font-weight: 600; }
+  h2 {
+    font-family: var(--display); font-weight: 700; font-size: 26px;
+    letter-spacing: -.017em; margin: 52px 0 6px; text-wrap: balance;
+    padding-top: 22px; border-top: 1px solid var(--line);
+  }
+  h3 {
+    font-family: var(--display); font-weight: 700; font-size: 19px;
+    letter-spacing: -.012em; margin: 32px 0 4px; text-wrap: balance;
+  }
+  h4 {
+    font-family: var(--mono); font-weight: 500; font-size: 11px; letter-spacing: .11em;
+    text-transform: uppercase; color: var(--muted); margin: 20px 0 5px;
+  }
+  p { margin: 0 0 14px; }
+  ul, ol { margin: 0 0 14px; padding-left: 20px; }
+  li { margin-bottom: 5px; }
+  code {
+    font-family: var(--mono); font-size: .875em; background: var(--surface-2);
+    border: 1px solid var(--line); border-radius: 4px; padding: 1px 5px;
+  }
+  pre {
+    background: var(--code); color: var(--code-ink); font-family: var(--mono);
+    font-size: 12.5px; line-height: 1.6; padding: 16px 18px; border-radius: 10px;
+    overflow-x: auto; margin: 0 0 16px;
+  }
+  pre code { background: none; border: none; padding: 0; font-size: inherit; color: inherit; }
+  .step {
+    border: 1px solid var(--line); border-radius: 12px; background: var(--surface);
+    padding: 20px 22px; margin-bottom: 16px;
+  }
+  .step h3 { margin-top: 0; }
+  .step .num {
+    font-family: var(--mono); font-size: 11px; letter-spacing: .11em;
+    text-transform: uppercase; color: var(--teal); display: block; margin-bottom: 3px;
+  }
+  .step.away { border-style: dashed; }
+  .step.away .num { color: var(--amber); }
+  .note {
+    border-left: 3px solid var(--teal); background: var(--surface);
+    padding: 15px 18px; border-radius: 0 9px 9px 0; margin: 0 0 16px; font-size: 14.5px;
+    color: var(--muted);
+  }
+  .note.warn { border-left-color: var(--amber); }
+  .note b { color: var(--ink); font-weight: 600; }
+  .note .ch {
+    font-family: var(--mono); font-size: 10.5px; letter-spacing: .1em; text-transform: uppercase;
+    display: block; margin-bottom: 6px; color: var(--ink);
+  }
+  .tablewrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 10px; margin: 0 0 16px; background: var(--surface); }
+  table { border-collapse: collapse; width: 100%; min-width: 520px; font-size: 14px; }
+  th, td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th {
+    font-family: var(--mono); font-size: 10.5px; letter-spacing: .1em; text-transform: uppercase;
+    color: var(--muted); font-weight: 400; background: var(--surface-2);
+  }
+  tbody tr:last-child td { border-bottom: none; }
+  td code { font-size: 12px; }
+  .toc {
+    background: var(--surface); border: 1px solid var(--line); border-radius: 12px;
+    padding: 18px 22px; margin: 28px 0 0;
+  }
+  .toc ol { margin: 0; padding-left: 20px; font-size: 14.5px; }
+  .toc a { color: var(--ink); text-decoration-color: var(--line); text-underline-offset: 3px; }
+  .toc a:hover { text-decoration-color: var(--teal); }
+  footer { margin-top: 52px; padding-top: 20px; border-top: 1px solid var(--line); font-size: 12.5px; color: var(--muted); }
+</style>
+
+<div class="wrap">
+
+  <p class="eyebrow">Handoff · build spec · 20 September 2026</p>
+  <h1>What each screen does, what it stores, and what happens when it goes wrong</h1>
+  <p class="lede">The written companion to the flow diagram. Every screen, the contract for the one backend call, the language rules, and the failure cases — <strong>enough for someone to build this without asking you questions.</strong></p>
+
+  <div class="toc">
+    <ol>
+      <li><a href="#principles">Four rules that decide arguments</a></li>
+      <li><a href="#language">Language, which lives in two places</a></li>
+      <li><a href="#screens">The screens</a></li>
+      <li><a href="#contract">The one call, as a contract</a></li>
+      <li><a href="#handoff">What the handoff document contains</a></li>
+      <li><a href="#failures">When things go wrong</a></li>
+      <li><a href="#scope">Not in the first version</a></li>
+    </ol>
+  </div>
+
+  <h2 id="principles">Four rules that decide arguments</h2>
+
+  <p>When a build decision is contested, these settle it.</p>
+
+  <ol>
+    <li><b>The model classifies, the code selects.</b> No language model ever names a model that ends up in front of a user. It returns job types from a fixed enum; our scorer reads the catalog and picks.</li>
+    <li><b>Nothing is a ruling.</b> Every recommendation ships with a cheaper option, a pricier one, and a stated limitation. Copy never sounds final.</li>
+    <li><b>Reduce the asking, never the answer.</b> Fewer questions is always a fair trade. A thinner recommendation is not.</li>
+    <li><b>Prefer the single key.</b> When two models score close, the one reachable on an OpenRouter key wins, because the other one costs the user a signup they did not plan for.</li>
+  </ol>
+
+  <h2 id="language">Language, which lives in two places</h2>
+
+  <p>Conflating these is the mistake to avoid. They are different settings with different jobs, and for many users they will hold different values — someone in Dhaka may well read the interface in English while building a bot that must answer in Bengali.</p>
+
+  <h3>Interface language</h3>
+  <ul>
+    <li>Detected from <code>navigator.languages</code> on first load. Never a blocking question.</li>
+    <li>A switcher sits in the header at all times, persisted in <code>localStorage</code> (wrapped in try/catch — it throws in private windows).</li>
+    <li>Purely cosmetic. It changes no recommendation.</li>
+    <li>Sets <code>&lt;html lang&gt;</code>, and <code>dir="rtl"</code> for Arabic, Urdu, Hebrew and Farsi.</li>
+  </ul>
+
+  <h3>Project language</h3>
+  <ul>
+    <li>Asked at step 4. Defaults to the interface language, and is changeable.</li>
+    <li><b>Multi-select</b> — most real projects are bilingual, usually English plus one.</li>
+    <li>It is a <b>recommendation input</b>: filters out models that score badly on the chosen languages, and reweights the rest by their multilingual score.</li>
+  </ul>
+
+  <p class="note"><span class="ch">This is the part that earns its keep</span>Multilingual ability is already in the Artificial Analysis feed as a <b>Multilingual Index</b>, so this costs one extra column in the catalog and one filter in the scorer. The payoff is large: the best model for a Bengali or Arabic support bot is often <b>not</b> the one that tops the English leaderboard, and the models that are strong in Chinese — GLM, Qwen — are exactly the cheap ones people have not heard of. Language turns out to be one of the better routes to the discovery the product is for.</p>
+
+  <p class="note warn"><span class="ch">RTL is real engineering, not a checkbox</span>Arabic and Urdu need <code>dir="rtl"</code>, logical CSS properties throughout (<code>margin-inline-start</code>, never <code>margin-left</code>), mirrored icons for directional arrows, and numbers that stay left-to-right inside right-to-left text. If Arabic is not in the launch set, build with logical properties anyway so adding it later is a translation job rather than a rewrite.</p>
+
+  <h4>Suggested launch set</h4>
+  <p>English, Bengali, Hindi, Indonesian, Spanish, Portuguese, Arabic, Chinese. Chosen for where enthusiast builders are numerous and English-language tooling serves them least. Prices stay in USD — that is what providers bill in — with an optional converted figure beside them, and all numbers formatted through <code>Intl.NumberFormat</code> with the interface locale.</p>
+
+  <h2 id="screens">The screens</h2>
+
+  <div class="step">
+    <span class="num">Screen 01</span>
+    <h3>Copy our prompt</h3>
+    <h4>Purpose</h4>
+    <p>Hand the user a prompt that makes their own chatbot decompose their project for free.</p>
+    <h4>On screen</h4>
+    <ul>
+      <li>The prompt in a bordered block, in the interface language, plus one <b>Copy</b> button.</li>
+      <li>One line saying what to do with it: take it to Claude or ChatGPT, bring back what it gives you.</li>
+      <li>A <b>"I already have a task list"</b> link that skips straight to screen 02.</li>
+    </ul>
+    <h4>The prompt itself</h4>
+    <p>Worded to force bullets rather than prose, because bullets parse and prose does not:</p>
+    <pre><code>Give me a handoff for my project, task by task.
+Plain bulleted list, one line per task, 12 tasks maximum.
+No preamble, no explanation, no code.</code></pre>
+    <h4>Stored</h4>
+    <p>Nothing.</p>
+  </div>
+
+  <div class="step away">
+    <span class="num">Away · not our screen</span>
+    <h3>Their chatbot</h3>
+    <p>The user leaves. This is intended. Their assistant already holds the project context, runs on their subscription, and does the decomposition better than we could from a form. We lose them for thirty seconds and gain the whole hard part for nothing.</p>
+    <p>Expect some to come back with prose despite the instruction. Screen 02 must survive that.</p>
+  </div>
+
+  <div class="step">
+    <span class="num">Screen 02</span>
+    <h3>Paste it in</h3>
+    <h4>Purpose</h4>
+    <p>Turn whatever came back into a clean, visible, editable task list before anything is sent.</p>
+    <h4>Behaviour</h4>
+    <ul>
+      <li>One textarea. On paste, parse client-side into bullets — split on newlines, strip leading <code>-</code>, <code>*</code>, <code>•</code> and <code>1.</code> markers, drop empty lines.</li>
+      <li>Render the result as an <b>editable list</b>: each task a row, each row deletable and editable, with an <b>Add task</b> control.</li>
+      <li>Cap at <b>12 tasks</b>. Extras are trimmed and the trim is stated, never silent.</li>
+      <li>Cap each task at 200 characters and the whole payload at 800 words.</li>
+      <li>If parsing yields one blob (they pasted prose), show it as a single editable task and say so plainly: <i>"That looks like one big task. Split it up, or send it as is."</i></li>
+    </ul>
+    <h4>Stored</h4>
+    <p>The task array, in session state. Persisted to the account only if they later choose to save.</p>
+    <h4>Why the editable list matters</h4>
+    <p>It is the moment the user sees exactly what is about to be sent, and can remove anything they did not mean to share. That is worth more for trust than any privacy copy.</p>
+  </div>
+
+  <div class="step">
+    <span class="num">Screen 03</span>
+    <h3>What can you spend?</h3>
+    <h4>On screen</h4>
+    <ul>
+      <li>A slider, plus a <b>per month / per run</b> toggle.</li>
+      <li>Label phrased in money and plain words, never tokens. At zero: <i>"Free tiers and models you run yourself."</i></li>
+      <li>Four preset chips so nobody has to drag: <code>$0</code>, <code>$5</code>, <code>$20</code>, <code>no limit</code>.</li>
+    </ul>
+    <h4>Stored</h4>
+    <p><code>budget_amount</code>, <code>budget_period</code>.</p>
+  </div>
+
+  <div class="step">
+    <span class="num">Screen 04</span>
+    <h3>What language must it work in?</h3>
+    <h4>On screen</h4>
+    <ul>
+      <li>Multi-select chips, pre-selected with the interface language.</li>
+      <li>A short line explaining why it is being asked: <i>"Some models are much better in some languages than others."</i></li>
+      <li><b>Skippable</b> — skipping means English only.</li>
+    </ul>
+    <h4>Stored</h4>
+    <p><code>project_languages: string[]</code> as BCP-47 codes.</p>
+  </div>
+
+  <div class="step">
+    <span class="num">Screen 05</span>
+    <h3>Your recommendations</h3>
+    <h4>Layout</h4>
+    <p>The user's own task wording down the left — <b>verbatim, never rewritten</b>, so they recognise their project. Three columns across: <b>Cheaper</b>, <b>Recommended</b>, <b>Stronger</b>. Recommended carries the accent; the others stay neutral.</p>
+    <h4>Each cell</h4>
+    <ul>
+      <li>Model name and provider.</li>
+      <li>Estimated cost for that task at that model.</li>
+      <li>A <b>single-key badge</b> when it is reachable on OpenRouter; an explicit <i>"needs its own account"</i> flag when it is not.</li>
+      <li>Tapping it opens: why this one, what it is not for, and two near-misses.</li>
+    </ul>
+    <h4>Above the table</h4>
+    <p>A running total against the budget, with a plain-words verdict — <i>fits</i>, <i>comfortably under</i>, <i>over by $12</i>. Swapping any cell recomputes it live.</p>
+    <h4>States</h4>
+    <div class="tablewrap">
+      <table>
+        <thead><tr><th>State</th><th>What shows</th></tr></thead>
+        <tbody>
+          <tr><td>Normal</td><td>Three columns, totals, verdict.</td></tr>
+          <tr><td>Nothing fits the budget</td><td>The cheapest possible build, with the gap stated: <i>"The cheapest way to do this is about $Y."</i> Never an empty screen.</td></tr>
+          <tr><td>Budget far exceeds need</td><td>Recommended stays cheap, with a line saying so. Never spend their money to look thorough.</td></tr>
+          <tr><td>A task could not be classified</td><td>That row shows a general-purpose pick and is marked <i>"we were not sure about this one"</i>.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="step">
+    <span class="num">Screen 06</span>
+    <h3>Your handoff document</h3>
+    <p>Assembled in code from the selections. No second model call. Default tab is prose for pasting into a chat; <code>AGENTS.md</code> and <code>models.json</code> sit behind it. Copy and Download, and the copy confirmation says <i>"Copied — paste it back where you got the task list."</i></p>
+  </div>
+
+  <h2 id="contract">The one call, as a contract</h2>
+
+  <p>Request. The user's task text is untrusted input — it came out of one model and is heading into another.</p>
+
+<pre><code>POST /api/recommend
+{
+  "tasks": ["Set up user login", "Parse uploaded PDFs", ...],
+  "budget": { "amount": 20, "period": "month" },
+  "languages": ["en", "bn"]
+}</code></pre>
+
+  <p>The model is called once, with a strict response schema. Note what it cannot return:</p>
+
+<pre><code>{
+  "classifications": [
+    {
+      "task_index": 0,
+      "job_type": "auth_and_glue",      // enum, closed set
+      "volume": "low",                   // low | medium | high
+      "confidence": 0.91,
+      "rationale": "Standard login flow, little reasoning needed."
+    }
+  ]
+}
+
+// job_type is one of exactly:
+//   ui_work · debugging · bulk_processing · reasoning
+//   vision · long_context · auth_and_glue · media_generation
+//
+// There is no field for a model name. Validate on arrival and
+// reject anything off-schema rather than passing it through.</code></pre>
+
+  <p>Our scorer then runs, with no model involved:</p>
+
+<pre><code>for each classification:
+    candidates = catalog
+        .filter(fits_budget_share)
+        .filter(supports(languages))       // multilingual index floor
+        .filter(supports(modalities_for(job_type)))
+    scored = candidates.map(score_for(job_type, weights))
+    pick     = best(scored)
+    cheaper  = best(scored.filter(cost &lt; pick.cost))
+    stronger = best(scored.filter(score &gt; pick.score))
+    // tie-break, always: available_on_openrouter wins</code></pre>
+
+  <p class="note"><span class="ch">Cost and caching</span>About 1,500 tokens in, 400 out — roughly <b>$0.0005</b> a call on a cheap flash model. The system prompt and schema are ~1,200 of those tokens and identical every time, so prefix caching takes most of the input to near zero. Store the analyzer as a catalog row and let the scorer choose it for the job <i>"classify short text into a fixed schema, cheaply"</i>, rather than pinning a model ID in code.</p>
+
+  <h2 id="handoff">What the handoff document contains</h2>
+
+  <ol>
+    <li><b>One line of context</b> — what they are building, from their own task list.</li>
+    <li><b>The routing table</b> — task, model, and one sentence on why.</li>
+    <li><b>Getting set up</b> — "Create one OpenRouter key at openrouter.ai; it reaches every model below except those marked." Then the exceptions, each with where to sign up.</li>
+    <li><b>Rules for the assistant</b> — use the named model for each task, do not substitute silently, say so if a model is unavailable.</li>
+    <li><b>Their original task list</b>, quoted and fenced, clearly marked as the user's own words.</li>
+  </ol>
+
+  <p class="note warn"><span class="ch">The fencing is not optional</span>This document is designed to be pasted into someone's AI assistant, which makes it an injection vehicle if user text is ever interpolated into an instruction position. Task text appears <b>only</b> inside a fenced, labelled block. Instructions are generated from our template and the enum'd classifications — never from user strings.</p>
+
+  <p>Written in the interface language, with model IDs, API terms and URLs left verbatim in Latin script. Offer an <b>"English version"</b> toggle: some users will prefer to hand their assistant English regardless, and that preference should be theirs.</p>
+
+  <h2 id="failures">When things go wrong</h2>
+
+  <div class="tablewrap">
+    <table>
+      <thead><tr><th>Failure</th><th>What the user sees</th></tr></thead>
+      <tbody>
+        <tr><td>Classifier times out or returns malformed JSON</td><td>Retry once. Then fall back to keyword-matched job types and label the result <i>"rough — we could not read every task clearly"</i>. Never an error page: a rough recommendation beats none.</td></tr>
+        <tr><td>Catalog sync failed last night</td><td>Serve the last good catalog and show its date. Stale by two days is fine and honest; silently stale is not.</td></tr>
+        <tr><td>A recommended model was withdrawn</td><td>The nightly sync marks it unavailable; the scorer skips it. A saved plan holding it shows <i>"no longer available"</i> and offers the current equivalent.</td></tr>
+        <tr><td>Pasted text is not a task list</td><td>Shown as one editable task with a plain-words nudge to split it. Still proceeds.</td></tr>
+        <tr><td>Free-tier quota exhausted</td><td>Falls back to the deterministic path, never a wall. Says what was lost: <i>"Using your task list as written, without the extra read."</i></td></tr>
+        <tr><td>Interface language has no translation for a string</td><td>Falls back to English for that string only, never a raw key.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h2 id="scope">Not in the first version</h2>
+
+  <ul>
+    <li><b>Hugging Face and GGUF.</b> Needs a third data source, quantization sizing and a VRAM question. Best tier, slowest to get right — do not let it block launch.</li>
+    <li><b>Accounts and saved plans.</b> The whole flow works logged out. Add accounts when there is something worth saving.</li>
+    <li><b>Image and video.</b> No public benchmark backs it; the useful answer is a workflow and a quantization, not a model and a price.</li>
+    <li><b>Community and trends.</b> Needs volume before it shows anything true. An empty trends page is worse than no trends page.</li>
+  </ul>
+
+  <footer>
+    Handoff build spec · companion to the flow diagram · written against
+    <span style="font-family:var(--mono)">docs/architecture-decisions.md</span> revision 6 · 20 September 2026
+  </footer>
+
+</div>
