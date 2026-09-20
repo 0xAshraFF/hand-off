@@ -476,3 +476,60 @@ models once told they exist.
 Keep the claim accurate: it is about defaults and incentives, not a conspiracy. Stated
 plainly it is strong enough, and overstating it is the one thing that would undercut a
 product whose entire value is being the trustworthy neutral party.
+
+---
+
+# Revision 7 — language is a recommendation input, not a setting
+
+## Two languages, never one
+
+Conflating these would be the mistake. They hold different values for many users — someone
+in Dhaka may read the interface in English while building a bot that must answer in Bengali.
+
+**Interface language.** Detected from `navigator.languages` on first load, never a blocking
+question, switcher always in the header, persisted in `localStorage` (in try/catch — it
+throws in private windows). Sets `<html lang>` and `dir`. Purely cosmetic: it changes no
+recommendation.
+
+**Project language.** Asked at step 4, defaults to the interface language, multi-select
+because most real projects are bilingual. It is a **scoring input**: filters models below a
+multilingual floor for the chosen languages, and reweights the rest.
+
+## Why this is worth more than it looks
+
+Multilingual ability is already in the Artificial Analysis feed as a **Multilingual Index**,
+so this costs one catalog column and one filter. The payoff is large:
+
+- The best model for a Bengali or Arabic support bot is frequently **not** the English
+  leaderboard leader.
+- The models strongest in Chinese — GLM, Qwen — are exactly the cheap, under-known names
+  the product exists to surface.
+
+So language is one of the better routes to the discovery this product is for, not a
+localisation chore bolted on at the end.
+
+## RTL is engineering, not a checkbox
+
+Arabic and Urdu need `dir="rtl"`, logical CSS properties throughout
+(`margin-inline-start`, never `margin-left`), mirrored directional icons, and numbers that
+stay LTR inside RTL text. **Build with logical properties from day one** even if Arabic is
+not in the launch set, so adding it later is a translation job rather than a rewrite.
+
+Suggested launch set: English, Bengali, Hindi, Indonesian, Spanish, Portuguese, Arabic,
+Chinese — chosen for where enthusiast builders are numerous and English-language tooling
+serves them least. Prices stay in USD (what providers bill in) with an optional converted
+figure; all numbers through `Intl.NumberFormat`.
+
+## Handoff document language
+
+Written in the interface language, with model IDs, API terms and URLs left verbatim in
+Latin script. Offer an **English version** toggle — some users will prefer to hand their
+assistant English regardless, and that preference is theirs to make.
+
+## Deliverables
+
+- `docs/user-flow.html` — the flow diagram, redrawn for the borrowed-chatbot loop, plus a
+  dedicated figure for the classify/select split inside the one call.
+- `docs/build-spec.html` — the written spec: every screen with purpose, contents, stored
+  state and edge cases; the API contract with the closed `job_type` enum; the scorer
+  pseudocode; the failure table; and what is deliberately out of scope for v1.
