@@ -533,3 +533,78 @@ assistant English regardless, and that preference is theirs to make.
 - `docs/build-spec.html` — the written spec: every screen with purpose, contents, stored
   state and edge cases; the API contract with the closed `job_type` enum; the scorer
   pseudocode; the failure table; and what is deliberately out of scope for v1.
+
+---
+
+# Revision 8 — the language feature survives contact with the data, and exposes a costing bug
+
+Before building on revision 7, the claim "the best model for a Bengali project is often not
+the English leader" was checked. It holds, the data exists, and the investigation turned up
+something more important.
+
+## The data exists, for exactly 16 languages
+
+The Artificial Analysis **Multilingual Index** is computed from **Global-MMLU-Lite**, across:
+
+> English, Chinese, Hindi, Spanish, French, Arabic, **Bangla**, Portuguese, Indonesian,
+> Japanese, Swahili, German, Korean, Italian, Yoruba, Burmese
+
+Every language in the proposed launch set — English, Bengali, Hindi, Indonesian, Spanish,
+Portuguese, Arabic, Chinese — is covered. AA also publishes a per-language comparison view,
+so this is real per-language data rather than one aggregate score.
+
+**Two honest limits:**
+
+1. **Sixteen is the ceiling.** Urdu, Vietnamese, Thai, Turkish, Persian, Tamil: no data.
+   Offer the language filter only where it can be backed, and say so plainly rather than
+   silently scoring those projects as English.
+2. **Global-MMLU-Lite is knowledge QA, not generation quality.** It measures whether a model
+   *knows things* in a language, not whether it *writes fluently* in it. A support bot needs
+   the second. This is a genuine gap between what is measured and what users need — flag it
+   as **Benchmark-backed, partially** rather than overclaiming.
+
+## The token tax — a correctness bug in the budget, not a nice-to-have
+
+Tokenizers are trained predominantly on English, so the same content costs far more tokens
+in other scripts:
+
+| Script / language | Token inflation vs English |
+|---|---|
+| Arabic, Hindi, Burmese | 3–4× common |
+| CJK, Arabic, Hindi (range) | 3–8× |
+| Korean | ~2.36× (50k English tokens → ~118k) |
+| Chinese | ~1.76× tokens per word |
+| Non-Latin generally | 2–3× per word |
+
+Bengali is an abugida, in the same family as the scripts that suffer worst. Academic work
+finds BPE fragmentation costs up to **27 macro-F1 points** on Nepali — so this degrades
+quality as well as inflating price.
+
+**The consequence is severe and specific.** Someone in Dhaka setting a $5/month budget for a
+Bengali bot would be quoted the English price and then billed two to four times it. The
+budget promise — the core of the product — would be broken for precisely the users the
+language feature exists to serve. That is worse than not having the feature.
+
+## What this requires
+
+1. **A script multiplier on every cost estimate.** Per project language, applied before the
+   total is shown. Surfaced honestly: *"Bengali text costs about 3× more tokens than English,
+   so this estimate is higher than the sticker price suggests."*
+2. **Tokenizer efficiency as a scoring input.** Different models tokenize the same script very
+   differently. A model that is cheaper per token but fragments Bengali badly can cost more in
+   practice than a pricier one that handles it well. **This inverts recommendations**, and it
+   is the kind of thing only someone building in that language would ever discover.
+3. **Measure it, do not estimate it.** During the nightly sync, push a fixed sample paragraph
+   per script through each model's tokenizer and store `tokens_per_char` by script. Cheap,
+   exact, and it updates itself when a provider changes tokenizer.
+
+## Why this is the strongest thing in the product
+
+Nobody surfaces this. Every pricing page, comparison site and leaderboard quotes English
+token prices, and every non-English builder silently pays two to four times more than the
+page implied. Handoff can show the real price in the user's actual language — which is both
+a genuine differentiator and, for a product whose entire promise is honest budgeting, simply
+the correct behaviour.
+
+It also reframes what the language selector is. It began as localisation, became a
+recommendation input, and is now a **correctness requirement**.

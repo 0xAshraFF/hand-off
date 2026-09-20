@@ -160,6 +160,38 @@
 
   <p class="note"><span class="ch">This is the part that earns its keep</span>Multilingual ability is already in the Artificial Analysis feed as a <b>Multilingual Index</b>, so this costs one extra column in the catalog and one filter in the scorer. The payoff is large: the best model for a Bengali or Arabic support bot is often <b>not</b> the one that tops the English leaderboard, and the models that are strong in Chinese — GLM, Qwen — are exactly the cheap ones people have not heard of. Language turns out to be one of the better routes to the discovery the product is for.</p>
 
+  <h3>The token tax</h3>
+
+  <p>The most consequential thing in this section, and the reason the language setting is a
+  correctness requirement rather than a preference.</p>
+
+  <p>Tokenizers are trained mostly on English, so identical content costs far more tokens in
+  other scripts:</p>
+
+  <div class="tablewrap">
+    <table>
+      <thead><tr><th>Script or language</th><th>Token inflation vs English</th></tr></thead>
+      <tbody>
+        <tr><td>Arabic, Hindi, Burmese</td><td>3&ndash;4&times; commonly</td></tr>
+        <tr><td>CJK, Arabic, Hindi (full range)</td><td>3&ndash;8&times;</td></tr>
+        <tr><td>Korean</td><td>~2.36&times; &mdash; 50k English tokens becomes ~118k</td></tr>
+        <tr><td>Chinese</td><td>~1.76&times; tokens per word</td></tr>
+        <tr><td>Non-Latin scripts generally</td><td>2&ndash;3&times; per word</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <p class="note warn"><span class="ch">This breaks the budget promise if ignored</span>Bengali is an abugida, the script family that suffers worst. Someone setting a <b>$5 a month</b> budget for a Bengali bot would be quoted the English price and then billed two to four times it. The budget is the core promise of this product, and it would be wrong for exactly the users the language feature exists to serve. <b>That is worse than having no language feature at all.</b></p>
+
+  <h4>Three things this requires</h4>
+  <ol>
+    <li><b>A script multiplier on every cost estimate</b>, applied per project language before any total is shown. Stated openly in the interface: <i>"Bengali text costs about 3&times; more tokens than English, so this is higher than the sticker price suggests."</i></li>
+    <li><b>Tokenizer efficiency as a scoring input.</b> Models tokenize the same script very differently. One that is cheaper per token but fragments Bengali badly can cost more in practice than a pricier one that handles it well &mdash; so this <b>inverts recommendations</b>, and only someone building in that language would ever find it.</li>
+    <li><b>Measure it rather than estimate it.</b> In the nightly sync, push a fixed sample paragraph per script through each model's tokenizer and store <code>tokens_per_char</code> by script. Cheap, exact, and self-updating when a provider changes tokenizer.</li>
+  </ol>
+
+  <p class="note"><span class="ch">Where the data comes from, and where it stops</span>The Artificial Analysis <b>Multilingual Index</b> is computed from <b>Global-MMLU-Lite</b> across sixteen languages: English, Chinese, Hindi, Spanish, French, Arabic, <b>Bangla</b>, Portuguese, Indonesian, Japanese, Swahili, German, Korean, Italian, Yoruba and Burmese. The whole proposed launch set is covered.<br><br>Two limits to state rather than paper over. <b>Sixteen is the ceiling</b> &mdash; Urdu, Vietnamese, Thai, Turkish and Tamil have no data, so do not offer a filter that cannot be backed. And <b>Global-MMLU-Lite is knowledge QA, not generation quality</b>: it measures whether a model knows things in a language, not whether it writes fluently in it. A support bot needs the second. Label this evidence <i>partially benchmark-backed</i>.</p>
+
   <p class="note warn"><span class="ch">RTL is real engineering, not a checkbox</span>Arabic and Urdu need <code>dir="rtl"</code>, logical CSS properties throughout (<code>margin-inline-start</code>, never <code>margin-left</code>), mirrored icons for directional arrows, and numbers that stay left-to-right inside right-to-left text. If Arabic is not in the launch set, build with logical properties anyway so adding it later is a translation job rather than a rewrite.</p>
 
   <h4>Suggested launch set</h4>
