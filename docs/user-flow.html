@@ -1,0 +1,511 @@
+<title>Handoff Screen Flow</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+  :root {
+    --paper:#EEF1EF; --surface:#FBFCFB; --surface-2:#F4F6F4;
+    --ink:#12171A; --muted:#5B686D; --line:#D2D9D5;
+    --teal:#0B7D72; --teal-wash:#E4F1EF;
+    --amber:#A75B0C; --amber-wash:#F8EDE1;
+    --display:"Bricolage Grotesque","Trebuchet MS",sans-serif;
+    --body:"Instrument Sans",-apple-system,"Segoe UI",sans-serif;
+    --mono:"JetBrains Mono",ui-monospace,Menlo,monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --paper:#0D1113; --surface:#161B1E; --surface-2:#1B2124;
+      --ink:#E9EEEB; --muted:#93A09F; --line:#2A3235;
+      --teal:#45C3B4; --teal-wash:#12292A;
+      --amber:#E39A4A; --amber-wash:#2B2015;
+    }
+  }
+  :root[data-theme="dark"] {
+    --paper:#0D1113; --surface:#161B1E; --surface-2:#1B2124;
+    --ink:#E9EEEB; --muted:#93A09F; --line:#2A3235;
+    --teal:#45C3B4; --teal-wash:#12292A;
+    --amber:#E39A4A; --amber-wash:#2B2015;
+  }
+
+  body {
+    background: var(--paper); color: var(--ink);
+    font-family: var(--body); font-size: 15px; line-height: 1.55;
+    margin: 0; padding-inline: 20px; padding-block: 44px 72px;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 1080px; margin: 0 auto; display: flex; flex-direction: column; gap: 52px; }
+
+  .eyebrow {
+    font-family: var(--mono); font-size: 11px; letter-spacing: .13em;
+    text-transform: uppercase; color: var(--muted); margin: 0 0 10px;
+  }
+  h1 {
+    font-family: var(--display); font-weight: 700; font-size: clamp(30px, 5.4vw, 46px);
+    line-height: 1.04; letter-spacing: -.022em; margin: 0 0 14px; text-wrap: balance;
+  }
+  h2 {
+    font-family: var(--display); font-weight: 700; font-size: clamp(20px, 3vw, 25px);
+    letter-spacing: -.015em; margin: 0 0 8px; text-wrap: balance;
+  }
+  .lede { font-size: 16.5px; color: var(--muted); max-width: 63ch; margin: 0; }
+  .lede strong { color: var(--ink); font-weight: 600; }
+  section > p { max-width: 65ch; color: var(--muted); margin: 0 0 20px; }
+
+  /* legend */
+  .legend { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 24px; }
+  .key {
+    display: flex; align-items: baseline; gap: 8px; padding: 9px 13px;
+    border-radius: 7px; border: 1px solid var(--line); background: var(--surface);
+    font-size: 12.5px;
+  }
+  .key b { font-weight: 600; }
+  .key.t { border-color: var(--teal); background: var(--teal-wash); }
+  .key.t b { color: var(--teal); }
+  .key.a { border-color: var(--amber); background: var(--amber-wash); }
+  .key.a b { color: var(--amber); }
+  .key span { color: var(--muted); }
+
+  /* figures */
+  figure { margin: 0; }
+  .scroller {
+    overflow-x: auto; border: 1px solid var(--line); border-radius: 12px;
+    background: var(--surface); padding: 18px;
+  }
+  .scroller svg { display: block; max-width: 100%; height: auto; }
+  #flowchart { min-width: 720px; }
+  #pipeline { min-width: 620px; }
+  figcaption {
+    margin-top: 12px; font-size: 13px; color: var(--muted); max-width: 66ch;
+  }
+  .hint {
+    font-family: var(--mono); font-size: 10.5px; letter-spacing: .08em;
+    text-transform: uppercase; color: var(--muted); margin: 0 0 9px;
+  }
+
+  /* svg classes */
+  .dg-node { fill: var(--surface-2); stroke: var(--line); stroke-width: 1.25; }
+  .dg-node-t { fill: var(--teal-wash); stroke: var(--teal); stroke-width: 1.5; }
+  .dg-node-a { fill: var(--amber-wash); stroke: var(--amber); stroke-width: 1.5; }
+  .dg-node-key { fill: var(--surface-2); stroke: var(--ink); stroke-width: 2; }
+  .dg-dash { stroke-dasharray: 5 4; }
+  .dg-edge { fill: none; stroke: var(--muted); stroke-width: 1.4; marker-end: url(#ah); }
+  .dg-edge-t { fill: none; stroke: var(--teal); stroke-width: 1.7; marker-end: url(#ah-t); }
+  .dg-edge-a { fill: none; stroke: var(--amber); stroke-width: 1.7; marker-end: url(#ah-a); }
+  .dg-plain { fill: none; stroke: var(--line); stroke-width: 1.2; }
+  .ah { fill: var(--muted); } .ah-t { fill: var(--teal); } .ah-a { fill: var(--amber); }
+  text { font-family: var(--body); }
+  .dg-t { fill: var(--ink); font-size: 12.5px; font-weight: 600; }
+  .dg-t-lg { fill: var(--ink); font-size: 14px; font-weight: 700; }
+  .dg-s { fill: var(--muted); font-size: 11px; }
+  .dg-m { font-family: var(--mono); font-size: 10.5px; fill: var(--muted); }
+  .dg-teal { fill: var(--teal); } .dg-amber { fill: var(--amber); }
+  .dg-lbl { font-size: 11px; font-weight: 500; }
+  .dg-num { font-family: var(--mono); font-size: 11px; fill: var(--muted); }
+
+  /* screen cards */
+  .screens { display: grid; grid-template-columns: repeat(auto-fit, minmax(258px, 1fr)); gap: 14px; }
+  .screen {
+    border: 1px solid var(--line); border-radius: 11px; background: var(--surface);
+    padding: 17px 17px 15px; display: flex; flex-direction: column; gap: 9px;
+  }
+  .screen.fork { border-color: var(--ink); border-width: 1.5px; }
+  .screen.pa { border-color: var(--teal); background: var(--teal-wash); }
+  .screen.pb { border-color: var(--amber); background: var(--amber-wash); }
+  .screen h3 {
+    font-family: var(--display); font-size: 16.5px; font-weight: 700;
+    letter-spacing: -.01em; margin: 0; text-wrap: balance;
+  }
+  .screen .tag {
+    font-family: var(--mono); font-size: 10px; letter-spacing: .12em;
+    text-transform: uppercase; color: var(--muted);
+  }
+  .screen ul { margin: 0; padding-left: 16px; font-size: 13.5px; color: var(--muted); }
+  .screen li { margin-bottom: 3px; }
+  .screen li b { color: var(--ink); font-weight: 600; }
+  .next {
+    margin-top: auto; padding-top: 10px; border-top: 1px solid var(--line);
+    font-size: 12.5px; color: var(--muted);
+  }
+  .next b { color: var(--ink); font-weight: 600; }
+  .pa .next, .pb .next { border-top-color: currentColor; }
+
+  /* cost strip */
+  .costs { border-collapse: collapse; width: 100%; font-size: 13.5px; }
+  .costs th, .costs td { text-align: left; padding: 9px 12px; border-bottom: 1px solid var(--line); }
+  .costs th {
+    font-family: var(--mono); font-size: 10.5px; letter-spacing: .1em;
+    text-transform: uppercase; color: var(--muted); font-weight: 400;
+  }
+  .costs td:nth-child(n+2) { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+  .costs tbody tr:last-child td { border-bottom: none; }
+  .costs .hi td { color: var(--amber); font-weight: 600; }
+  .tablewrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 11px; background: var(--surface); }
+
+  .note {
+    border-left: 3px solid var(--teal); background: var(--surface);
+    padding: 15px 18px; border-radius: 0 9px 9px 0; font-size: 14.5px;
+    color: var(--muted); max-width: 70ch;
+  }
+  .note b { color: var(--ink); font-weight: 600; }
+  footer { font-size: 12.5px; color: var(--muted); border-top: 1px solid var(--line); padding-top: 18px; }
+</style>
+
+<div class="wrap">
+
+  <header>
+    <p class="eyebrow">Handoff · user flow spec · 20 Sep 2026</p>
+    <h1>Every screen, and where the flow splits in two</h1>
+    <p class="lede">Six questions, one at a time. Then <strong>step&nbsp;6 decides everything</strong>: skip it and the answer is computed instantly with no login and no cap, because structured answers plus a cached catalog is a pure function. Write in it and the flow crosses into sign-in, the daily quota, and a model call.</p>
+    <div class="legend">
+      <div class="key t"><b>Free path</b><span>no login · uncapped · ~$0 per run</span></div>
+      <div class="key a"><b>Metered path</b><span>sign-in · 3 per day · model call</span></div>
+    </div>
+  </header>
+
+  <section>
+    <h2>The whole flow</h2>
+    <p>Read top to bottom. The two coloured lanes are the only structural decision in the product — everything above them is shared, everything below them rejoins.</p>
+    <figure>
+      <p class="hint">Scroll sideways on a narrow screen</p>
+      <div class="scroller">
+        <svg id="flowchart" viewBox="0 0 980 1400" role="img" aria-label="Flowchart of the Handoff user journey. A visitor lands with no login and either browses the leaderboard or starts a six-step wizard. Steps one to five are tiles and sliders. Step six, an optional 150-word description, is the fork: skipping it routes to instant deterministic scoring with no login and no cap, while writing something routes through Google sign-in, a three-per-day quota check, and a GLM-5.3-Flash call that escalates to full GLM-5.3 when the description is unclear. Both paths rejoin at the results screen and then the handoff screen, which optionally leads to saving or sharing.">
+          <defs>
+            <marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse">
+              <path d="M0 0 L10 5 L0 10 z" class="ah"/>
+            </marker>
+            <marker id="ah-t" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse">
+              <path d="M0 0 L10 5 L0 10 z" class="ah-t"/>
+            </marker>
+            <marker id="ah-a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse">
+              <path d="M0 0 L10 5 L0 10 z" class="ah-a"/>
+            </marker>
+          </defs>
+
+          <!-- ENTRY -->
+          <rect x="340" y="20" width="300" height="54" rx="8" class="dg-node"/>
+          <text x="490" y="43" text-anchor="middle" class="dg-t">Opens handoff.app</text>
+          <text x="490" y="61" text-anchor="middle" class="dg-s">no landing page, no sign-in wall</text>
+
+          <path d="M490 74 L490 94 L180 94 L180 114" class="dg-edge"/>
+          <text x="335" y="87" text-anchor="middle" class="dg-s">or just browses</text>
+          <path d="M490 94 L490 134" class="dg-edge"/>
+
+          <!-- LEADERBOARD -->
+          <rect x="40" y="120" width="280" height="76" rx="8" class="dg-node-t"/>
+          <text x="180" y="145" text-anchor="middle" class="dg-t dg-teal">The leaderboard</text>
+          <text x="180" y="164" text-anchor="middle" class="dg-s">Every model, ranked and priced</text>
+          <text x="180" y="182" text-anchor="middle" class="dg-s">Static, cached, costs nothing to serve</text>
+
+          <!-- STEPS 1-5 -->
+          <rect x="340" y="140" width="300" height="52" rx="8" class="dg-node"/>
+          <text x="490" y="163" text-anchor="middle" class="dg-t">1 — What are you building?</text>
+          <text x="490" y="180" text-anchor="middle" class="dg-s">six tiles · one tap</text>
+          <path d="M490 192 L490 216" class="dg-edge"/>
+
+          <rect x="340" y="222" width="300" height="52" rx="8" class="dg-node"/>
+          <text x="490" y="245" text-anchor="middle" class="dg-t">2 — Where does it run?</text>
+          <text x="490" y="262" text-anchor="middle" class="dg-s">cloud · local · hybrid · never leaves my machine</text>
+          <path d="M490 274 L490 298" class="dg-edge"/>
+
+          <rect x="340" y="304" width="300" height="52" rx="8" class="dg-node"/>
+          <text x="490" y="327" text-anchor="middle" class="dg-t">3 — What does it handle?</text>
+          <text x="490" y="344" text-anchor="middle" class="dg-s">text · images · PDFs · audio · video</text>
+          <path d="M490 356 L490 380" class="dg-edge"/>
+
+          <rect x="340" y="386" width="300" height="52" rx="8" class="dg-node"/>
+          <text x="490" y="409" text-anchor="middle" class="dg-t">4 — What can you spend?</text>
+          <text x="490" y="426" text-anchor="middle" class="dg-s">slider, $0 to $500, month or run</text>
+          <path d="M490 438 L490 462" class="dg-edge"/>
+
+          <rect x="340" y="468" width="300" height="52" rx="8" class="dg-node"/>
+          <text x="490" y="491" text-anchor="middle" class="dg-t">5 — What matters most?</text>
+          <text x="490" y="508" text-anchor="middle" class="dg-s">quality · speed · cost, totalling 100</text>
+          <path d="M490 520 L490 544" class="dg-edge"/>
+
+          <!-- chip annotation -->
+          <path d="M656 152 L648 152 L648 508 L656 508" class="dg-plain"/>
+          <text x="668" y="308" class="dg-s">Each answer collapses</text>
+          <text x="668" y="325" class="dg-s">into a chip above the</text>
+          <text x="668" y="342" class="dg-s">live question. Tap a</text>
+          <text x="668" y="359" class="dg-s">chip to reopen it.</text>
+
+          <!-- STEP 6 — FORK -->
+          <rect x="300" y="550" width="380" height="76" rx="8" class="dg-node-key"/>
+          <text x="490" y="578" text-anchor="middle" class="dg-t">6 — Describe it in your own words</text>
+          <text x="490" y="597" text-anchor="middle" class="dg-s">optional · hard cap of 150 words</text>
+          <text x="490" y="615" text-anchor="middle" class="dg-m">THE ONLY PLACE THE TWO PATHS DIVERGE</text>
+
+          <path d="M490 626 L490 648 L230 648 L230 682" class="dg-edge-t"/>
+          <text x="352" y="640" text-anchor="middle" class="dg-lbl dg-teal">Skips it</text>
+          <path d="M490 648 L750 648 L750 682" class="dg-edge-a"/>
+          <text x="622" y="640" text-anchor="middle" class="dg-lbl dg-amber">Writes something</text>
+
+          <!-- PATH A -->
+          <rect x="60" y="688" width="340" height="96" rx="8" class="dg-node-t"/>
+          <text x="230" y="715" text-anchor="middle" class="dg-t dg-teal">Scored on the spot</text>
+          <text x="230" y="737" text-anchor="middle" class="dg-s">A pure function over the cached catalog.</text>
+          <text x="230" y="754" text-anchor="middle" class="dg-s">No model is called at all.</text>
+          <text x="230" y="774" text-anchor="middle" class="dg-m dg-teal">NO LOGIN · NO CAP · ~$0</text>
+
+          <!-- PATH B -->
+          <rect x="580" y="688" width="340" height="54" rx="8" class="dg-node-a"/>
+          <text x="750" y="712" text-anchor="middle" class="dg-t dg-amber">Google sign-in</text>
+          <text x="750" y="730" text-anchor="middle" class="dg-s">first visit only</text>
+          <path d="M750 742 L750 760" class="dg-edge-a"/>
+
+          <rect x="580" y="766" width="340" height="56" rx="8" class="dg-node-a"/>
+          <text x="750" y="790" text-anchor="middle" class="dg-t">Quota check</text>
+          <text x="750" y="809" text-anchor="middle" class="dg-s">3 runs a day, resets at midnight</text>
+          <path d="M750 822 L750 842" class="dg-edge-a"/>
+
+          <path d="M580 794 L490 794 L490 736 L406 736" class="dg-edge"/>
+          <text x="535" y="786" text-anchor="middle" class="dg-m">out of runs</text>
+
+          <rect x="580" y="848" width="340" height="70" rx="8" class="dg-node-a"/>
+          <text x="750" y="872" text-anchor="middle" class="dg-t">GLM-5.3-Flash reads it</text>
+          <text x="750" y="890" text-anchor="middle" class="dg-m">$0.15 in / $0.50 out per M</text>
+          <text x="750" y="908" text-anchor="middle" class="dg-m dg-amber">≈ $0.0004 PER RUN</text>
+          <path d="M750 918 L750 938" class="dg-edge-a"/>
+
+          <rect x="580" y="944" width="340" height="68" rx="8" class="dg-node-a dg-dash"/>
+          <text x="750" y="968" text-anchor="middle" class="dg-t">Unclear? Escalate to GLM-5.3</text>
+          <text x="750" y="986" text-anchor="middle" class="dg-m">$1.40 in / $4.40 out per M</text>
+          <text x="750" y="1004" text-anchor="middle" class="dg-m">fires on roughly 1 run in 5</text>
+
+          <!-- REJOIN -->
+          <path d="M230 784 L230 1040 L280 1040 L280 1064" class="dg-edge-t"/>
+          <path d="M750 1012 L750 1040 L700 1040 L700 1064" class="dg-edge-a"/>
+
+          <rect x="200" y="1070" width="580" height="112" rx="9" class="dg-node"/>
+          <text x="490" y="1099" text-anchor="middle" class="dg-t-lg">Your results</text>
+          <text x="490" y="1122" text-anchor="middle" class="dg-s">One card per job — the thinker · the workhorse · the reader · the librarian</text>
+          <text x="490" y="1141" text-anchor="middle" class="dg-s">Each with a pick, an underrated alternative, and three others to compare</text>
+          <text x="490" y="1164" text-anchor="middle" class="dg-s">Running monthly cost against your budget, live at the top, updating on every swap</text>
+          <path d="M490 1182 L490 1204" class="dg-edge"/>
+
+          <rect x="200" y="1210" width="580" height="88" rx="9" class="dg-node"/>
+          <text x="490" y="1239" text-anchor="middle" class="dg-t-lg">Your handoff</text>
+          <text x="490" y="1262" text-anchor="middle" class="dg-s">Paste into Claude or ChatGPT  ·  AGENTS.md  ·  models.json</text>
+          <text x="490" y="1281" text-anchor="middle" class="dg-s">Anything you typed is quoted and fenced, never folded into the instructions</text>
+
+          <path d="M490 1298 L490 1316" class="dg-plain"/>
+          <path d="M335 1316 L645 1316" class="dg-plain"/>
+          <path d="M335 1316 L335 1334" class="dg-edge"/>
+          <path d="M645 1316 L645 1334" class="dg-edge"/>
+
+          <rect x="200" y="1340" width="270" height="52" rx="8" class="dg-node"/>
+          <text x="335" y="1362" text-anchor="middle" class="dg-t">Save to your account</text>
+          <text x="335" y="1379" text-anchor="middle" class="dg-s">needs sign-in · private</text>
+
+          <rect x="510" y="1340" width="270" height="52" rx="8" class="dg-node"/>
+          <text x="645" y="1362" text-anchor="middle" class="dg-t">Share to community</text>
+          <text x="645" y="1379" text-anchor="middle" class="dg-s">off unless switched on</text>
+        </svg>
+      </div>
+      <figcaption>Everything above step&nbsp;6 is shared by both paths, and everything below the rejoin is shared again. The split exists only because free text is the one input that a deterministic scorer cannot read — which is why running out of quota falls back to the free path rather than to a wall.</figcaption>
+    </figure>
+  </section>
+
+  <section>
+    <h2>Where the catalog comes from</h2>
+    <p>The recommendation is only a pure function because the numbers are already on disk when the request arrives. Nothing in the user flow above ever calls a benchmark API.</p>
+    <figure>
+      <div class="scroller">
+        <svg id="pipeline" viewBox="0 0 900 250" role="img" aria-label="Data pipeline diagram. Artificial Analysis supplies benchmark scores and OpenRouter supplies live prices. Both feed a nightly sync job at 03:00 UTC, which reconciles them into a Supabase Postgres catalog, which is published to an edge cache that the app reads.">
+          <rect x="16" y="30" width="176" height="60" rx="8" class="dg-node"/>
+          <text x="104" y="55" text-anchor="middle" class="dg-t">Artificial Analysis</text>
+          <text x="104" y="73" text-anchor="middle" class="dg-s">benchmark scores</text>
+
+          <rect x="16" y="150" width="176" height="60" rx="8" class="dg-node"/>
+          <text x="104" y="175" text-anchor="middle" class="dg-t">OpenRouter</text>
+          <text x="104" y="193" text-anchor="middle" class="dg-s">live prices, availability</text>
+
+          <path d="M192 60 L250 60 L250 96 L286 96" class="dg-edge"/>
+          <path d="M192 180 L250 180 L250 144 L286 144" class="dg-edge"/>
+
+          <rect x="292" y="90" width="164" height="60" rx="8" class="dg-node"/>
+          <text x="374" y="115" text-anchor="middle" class="dg-t">Nightly sync</text>
+          <text x="374" y="133" text-anchor="middle" class="dg-m">03:00 UTC</text>
+
+          <path d="M456 120 L516 120" class="dg-edge"/>
+          <text x="486" y="112" text-anchor="middle" class="dg-m">reconcile</text>
+
+          <rect x="522" y="90" width="176" height="60" rx="8" class="dg-node"/>
+          <text x="610" y="115" text-anchor="middle" class="dg-t">Postgres catalog</text>
+          <text x="610" y="133" text-anchor="middle" class="dg-s">one row per model</text>
+
+          <path d="M698 120 L752 120" class="dg-edge-t"/>
+          <text x="725" y="112" text-anchor="middle" class="dg-m">publish</text>
+
+          <rect x="758" y="90" width="132" height="60" rx="8" class="dg-node-t"/>
+          <text x="824" y="115" text-anchor="middle" class="dg-t dg-teal">Edge cache</text>
+          <text x="824" y="133" text-anchor="middle" class="dg-s">what the app reads</text>
+        </svg>
+      </div>
+      <figcaption>Prices and scores go stale by at most a day, which is exactly what lets the entire catalog be served from cache. Where the two sources disagree on a price, OpenRouter wins and both values are kept so the conflict stays visible.</figcaption>
+    </figure>
+  </section>
+
+  <section>
+    <h2>Screen by screen</h2>
+    <p>What sits on each page, and what it leads to.</p>
+    <div class="screens">
+
+      <div class="screen">
+        <span class="tag">Screen 01</span>
+        <h3>What are you building?</h3>
+        <ul>
+          <li>Six tiles, icon and one line each</li>
+          <li><b>Agent, chatbot, documents, coding tool, creative, something else</b></li>
+          <li>Selecting auto-advances — no Next button</li>
+        </ul>
+        <p class="next"><b>Leads to</b> screen 02. The tile sets which jobs appear in the results.</p>
+      </div>
+
+      <div class="screen">
+        <span class="tag">Screen 02</span>
+        <h3>Where does it run?</h3>
+        <ul>
+          <li>Cloud, local, hybrid, or never leaves my machine</li>
+          <li>Drives a hard filter, not a preference</li>
+        </ul>
+        <p class="next"><b>Leads to</b> screen 03. Picking local removes every hosted model from scoring.</p>
+      </div>
+
+      <div class="screen">
+        <span class="tag">Screen 03</span>
+        <h3>What does it handle?</h3>
+        <ul>
+          <li>Multi-select: text, images, PDFs, audio, video, code, long documents</li>
+          <li>Needs a confirm button, unlike the single-select screens</li>
+        </ul>
+        <p class="next"><b>Leads to</b> screen 04. Each modality adds a job card to the results.</p>
+      </div>
+
+      <div class="screen">
+        <span class="tag">Screen 04</span>
+        <h3>What can you spend?</h3>
+        <ul>
+          <li>Slider from $0 to $500, month or run</li>
+          <li>Label reads in plain language, not numbers alone</li>
+        </ul>
+        <p class="next"><b>Leads to</b> screen 05. Sets the meter the results are measured against.</p>
+      </div>
+
+      <div class="screen">
+        <span class="tag">Screen 05</span>
+        <h3>What matters most?</h3>
+        <ul>
+          <li>Three sliders totalling 100 — <b>quality, speed, cost</b></li>
+          <li>Dragging one redistributes the others</li>
+        </ul>
+        <p class="next"><b>Leads to</b> screen 06. These are the weights in the scoring function.</p>
+      </div>
+
+      <div class="screen fork">
+        <span class="tag">Screen 06 · the fork</span>
+        <h3>Describe it in your own words</h3>
+        <ul>
+          <li>Optional free text, <b>hard cap of 150 words</b></li>
+          <li>Live counter: grey, amber at 130, red and blocking at 150</li>
+          <li>A visible Skip link, weighted equally to the submit button</li>
+        </ul>
+        <p class="next"><b>Skip</b> → the free path. <b>Write</b> → sign-in, quota, model call.</p>
+      </div>
+
+      <div class="screen pa">
+        <span class="tag">Free path</span>
+        <h3>Scored on the spot</h3>
+        <ul>
+          <li>Deterministic scoring over the cached catalog</li>
+          <li>No sign-in, no quota, no model call</li>
+          <li>Renders immediately — no analyzing state to show</li>
+        </ul>
+        <p class="next"><b>Leads straight to</b> the results screen.</p>
+      </div>
+
+      <div class="screen pb">
+        <span class="tag">Metered path</span>
+        <h3>Sign in, then analyze</h3>
+        <ul>
+          <li>Google sign-in on first visit only</li>
+          <li>Quota check — three runs a day</li>
+          <li>GLM-5.3-Flash, escalating to GLM-5.3 when the text is vague</li>
+          <li>Out of runs falls back to the free path, never a wall</li>
+        </ul>
+        <p class="next"><b>Leads to</b> the analyzing state, then results.</p>
+      </div>
+
+      <div class="screen">
+        <span class="tag">Screen 07 · metered path only</span>
+        <h3>Analyzing</h3>
+        <ul>
+          <li>Real steps checking off one by one</li>
+          <li>Read your description · scored 340 models · matched jobs</li>
+          <li>Two to three seconds, then it resolves on its own</li>
+        </ul>
+        <p class="next"><b>Leads to</b> the results screen. Never shown on the free path.</p>
+      </div>
+
+      <div class="screen">
+        <span class="tag">Screen 08</span>
+        <h3>Your results</h3>
+        <ul>
+          <li>One card per job, named in plain language</li>
+          <li>The pick, an <b>underrated alternative</b>, three more to compare</li>
+          <li>Every number captioned with which direction is good</li>
+          <li>Swapping a model recomputes the cost meter live</li>
+        </ul>
+        <p class="next"><b>Leads to</b> the handoff, or back up to any chip to re-answer.</p>
+      </div>
+
+      <div class="screen">
+        <span class="tag">Screen 09</span>
+        <h3>Your handoff</h3>
+        <ul>
+          <li>Default tab is prose to paste into Claude or ChatGPT</li>
+          <li><b>AGENTS.md</b> and <b>models.json</b> behind it</li>
+          <li>User text quoted and fenced, never merged into instructions</li>
+        </ul>
+        <p class="next"><b>Leads to</b> save or share, both optional and both off by default.</p>
+      </div>
+
+      <div class="screen pa">
+        <span class="tag">Side entrance</span>
+        <h3>The leaderboard</h3>
+        <ul>
+          <li>Every model ranked, scored and priced</li>
+          <li>Reachable without entering the wizard at all</li>
+          <li>Static and cached — the cheapest page you serve</li>
+        </ul>
+        <p class="next"><b>Leads anywhere</b> — including into the wizard, if something catches their eye.</p>
+      </div>
+
+    </div>
+  </section>
+
+  <section>
+    <h2>What a run on the metered path costs</h2>
+    <p>Roughly 1,500 tokens in and 400 out, per run. The escalation tier is the only line that is not a rounding error, and it fires on about one run in five.</p>
+    <div class="tablewrap">
+      <table class="costs">
+        <thead>
+          <tr><th>Model</th><th>In / M</th><th>Out / M</th><th>Per run</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Qwen3.7 Flash</td><td>$0.03</td><td>$0.13</td><td>$0.00010</td></tr>
+          <tr><td>DeepSeek V4 Flash</td><td>$0.14</td><td>$0.40</td><td>$0.00037</td></tr>
+          <tr class="hi"><td>GLM-5.3-Flash — tier one</td><td>$0.15</td><td>$0.50</td><td>$0.00043</td></tr>
+          <tr><td>Gemini 3.1 Flash-Lite</td><td>$0.25</td><td>$1.50</td><td>$0.00098</td></tr>
+          <tr class="hi"><td>GLM-5.3 — escalation</td><td>$1.40</td><td>$4.40</td><td>$0.00386</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="note" style="margin-top:20px"><b>At three runs a day, 100,000 users cost about $333 a year in model calls.</b> Vercel and Supabase together cost more than that before a single call is made. The quota is there to stop scripted abuse, not to protect a budget — so make it three per day, not three per lifetime.</p>
+  </section>
+
+  <footer>
+    Handoff user flow · drawn against the decisions in <span style="font-family:var(--mono)">docs/architecture-decisions.md</span> · prices as of 20 September 2026
+  </footer>
+
+</div>
