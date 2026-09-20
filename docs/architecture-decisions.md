@@ -268,3 +268,65 @@ catalog row needs.
 It adds a third data source (Hugging Face), quantization awareness, and a VRAM question
 that only that tier sees. It is also the tier that delivers the differentiation best.
 Worth sequencing last, after the cloud tiers are working end to end.
+
+---
+
+# Revision 4 — jobs are build phases, and evidence gets a label
+
+## The rows were wrong
+
+Abstract project roles (thinker / workhorse / reader / librarian) were the wrong
+decomposition. The real one is **phases of building software with AI**, which is what
+people actually experience:
+
+Planning · Building UI · Debugging · Coding on a budget · All-rounder · Running local ·
+Images and video
+
+## Task-specific benchmarks exist — this product can be data-backed
+
+The open question was whether public data goes to the granularity of "better at UI" vs
+"better at debugging". It does, for most of it:
+
+| Job | Benchmark | Evidence |
+|---|---|---|
+| Building UI | Frontend Code Arena, WebDev Arena, Design Arena | Split — they disagree |
+| Debugging | SWE-bench Verified, SWE-bench Pro, Terminal-Bench 2.1 | Strong |
+| Long-horizon agentic | SWE Marathon, Terminal-Bench | Strong |
+| Planning | none | Hands-on only |
+| Value / quality-per-dollar | none | Derived from price + coding scores |
+| Local | none | Arithmetic on params and quantization |
+| Images and video | none | Hands-on only |
+
+## Verified against the claims
+
+- **"Kimi K3 builds UI better than Claude"** — supported. Kimi K3 is **#1 on Frontend
+  Code Arena, ahead of Claude Fable 5**. But Gemini 3.7 Flash leads WebDev Arena (1588)
+  and Inkling leads Design Arena Agentic Web Dev (1257). Three boards, three winners.
+- **"Codex 5.3 debugs better than Opus or Sonnet"** — **contradicted**. SWE-bench
+  Verified: Claude Opus 5 96%, Mythos 5 95.5%, Fable 5 95%. SWE-bench Pro: Fable 5.1
+  first at 81.2%. No Codex variant near the top of either. Two possible reconciliations
+  worth investigating rather than dismissing: the claim may be about the *Codex CLI
+  harness* rather than the model, and SWE-bench scores one-shot patches rather than
+  interactive back-and-forth debugging.
+- **"Claude Opus plans best"** — unmeasurable. Nothing isolates planning.
+- **"GLM-5.3 is Fable-level coding without breaking the bank"** — plausible and
+  correctly shaped. $1.40/$4.40, 1M context, open weights, released 14 Aug 2026.
+- **"DeepSeek Pro V4 is the best all-rounder"** — V4 Flash and V4.1 Flash verified; no
+  "Pro" variant found under that name.
+- **Kimi K3 is open-weight and 2.8 trillion parameters** — so "open weights" must never
+  be shown as "you can run this locally". The Hug Me path has to check against real VRAM.
+
+## The evidence label is the differentiator
+
+Every comparison site shows numbers. None say when they ran out of numbers and started
+guessing. Three labels, shown on every recommendation:
+
+- **Benchmark-backed** — a public leaderboard measures this job directly.
+- **Split decision** — credible benchmarks disagree; show both rather than the
+  flattering one.
+- **Hands-on only** — nothing public measures this; the pick is judgement, labelled.
+
+This is what makes the curated, experience-derived picks *safe* to ship alongside the
+measured ones. Without it, the whole board inherits the credibility of its weakest row.
+
+Prototype: `docs/model-board.html`.
