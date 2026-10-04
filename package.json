@@ -1,15 +1,16 @@
 {
-  "name": "react-example",
+  "name": "handoff",
   "private": true,
-  "version": "0.0.0",
+  "version": "0.2.0",
   "type": "module",
   "scripts": {
     "dev": "tsx server.ts",
-    "build": "vite build && esbuild server.ts --bundle --platform=node --format=cjs --packages=external --sourcemap --outfile=dist/server.cjs",
+    "build": "vite build && esbuild server.ts --bundle --platform=node --format=cjs --packages=external --sourcemap --outfile=dist/server.cjs && mkdir -p dist/data && cp data/catalog.snapshot.json dist/data/catalog.snapshot.json",
     "start": "node dist/server.cjs",
     "preview": "vite preview",
     "clean": "rm -rf dist server.js",
-    "lint": "tsc --noEmit"
+    "lint": "tsc --noEmit",
+    "catalog:refresh": "tsx scripts/refresh-catalog.ts"
   },
   "dependencies": {
     "@google/genai": "^2.4.0",
