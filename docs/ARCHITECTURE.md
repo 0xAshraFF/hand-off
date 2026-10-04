@@ -1,166 +1,25 @@
-# Handoff V2 Architecture
+# Handoff architecture
 
-## 1. Product boundary
+The existing React/Vite UI calls a testable Express application. `lib/catalog.ts` validates and caches snapshot facts; `lib/planner.ts` normalizes requests, decomposes tasks, filters constraints, estimates costs, ranks eligible candidates, validates optional planner choices, and creates the human route and Markdown handoff.
 
-Handoff is not a generic model leaderboard.
+The planning path is request validation → task decomposition → capability/access/privacy/hardware/region filtering → cost estimates → total-budget selection → optional compatible planner → exact task/ID/budget validation → human plan and agent handoff. Pricing never comes from the LLM. Unknown prices are excluded from the known subtotal and prevent a confirmed budget. Workload estimates exclude retries; recurring subscription charges are counted once. Displayed subtotals round conservatively to cents. Quality preference applies to core work, with untested evidence and informational alternatives made explicit.
 
-The user provides:
+Owned web subscriptions are zero incremental through supported interfaces; API pricing is separate. Catalogued API rates cannot become verified web-interface prices. CPU/GPU routes require declared hardware. Private/local plans skip all external planner calls. Manual recording, editing and visual QA can use free software, with human time excluded and checks stated.
 
-- what they want to produce
-- quantity
-- budget
-- priority: free / best value / quality
-- tools or subscriptions they already own
+Optional refinement requires HTTPS, an explicit endpoint model ID and a server-side key. The model receives only eligible catalog candidates. Exact task coverage, duplicates, unknown IDs, total spend, unknown-for-known swaps, loss of owned-tool savings, and unjustified spend increases are checked. A missing key, timeout, network failure or invalid response uses the deterministic route. No vendor's model name or provider brand changes ranking.
 
-Handoff returns one default execution route and keeps alternatives secondary.
+The snapshot remains the runtime read path. Official scoped HTML adapters parse Qwen international image rates/quota, Google's exact standard image section (including input rates), and DeepSeek model-specific peak/cache columns. Other sources record reachability, preserve their old dates and retain unverified price labels. Refresh preserves every price/offer observation and source check; parser/fetch failures preserve old values. Catalog SQL migration and export are implemented and tested, but hosted DB synchronization is not configured. See DATA.md.
 
-## 2. Request path
+API routes:
 
-```text
-User goal
-  ↓
-Task classifier
-  ↓
-Candidate retrieval from verified catalog
-  ↓
-Deterministic cost calculation
-  ↓
-Budget-aware baseline route
-  ↓
-Optional planner LLM chooses only from supplied candidates
-  ↓
-Server validates IDs + recalculates costs
-  ↓
-Human plan + agent handoff
-```
+- GET `/api/health`, `/api/catalog`, `/api/catalog/status`, `/api/catalog/search`, `/api/tools/:id`, `/api/prices/:id`, `/api/offers`.
+- POST `/api/plan`, `/api/plan-v2`, `/api/plan/refine`: optionally refined full routes.
+- POST `/api/plan/preview`: deterministic route calculations, with no model call.
+- POST `/api/handoff/export`: a Markdown HTTP attachment with a sanitized filename; no stored user content.
+- POST `/api/catalog/refresh`: constant-time bearer-secret validation and one refresh at a time.
 
-The optional LLM is therefore a **selector and explainer**, not a pricing database.
+JSON requests are limited to 32 KB; the Markdown form attachment allows 256 KB of percent-encoded text, bounded to 24,000 handoff characters. Planning rate limits are per IP per server process. Production serves a portable Vite/esbuild output and its snapshot. Both Ubuntu and Windows CI run frozen installs, typechecking, tests and build. Nightly refresh at 18:15 UTC runs checks before and after refresh, then commits tracked data only; it requires no HTTP admin secret.
 
-## 3. Catalog
+The UI includes project details, working outcome/category/section/style/difficulty/budget/access filters, Ctrl/Cmd+K search with focus trapping and Escape, source/evidence and budget states, session guide checklists, offers, copy/download feedback, and light/dark responsive layouts. Route filters require complete calculated previews. There is no fabricated community count or output-quality badge.
 
-The current fast-read store is `data/catalog.snapshot.json`.
-
-This keeps request-time planning cheap and predictable: the app does not call multiple provider pricing APIs while a user waits.
-
-Each record includes:
-
-- `id`
-- `name`
-- `provider`
-- `kind`
-- `tasks[]`
-- normalized `pricing`
-- free-tier notes
-- API/web/local availability
-- quality evidence
-- source URL
-- `lastVerified`
-- search/routing tags
-
-### Price history
-
-The snapshot is intentionally versionable in Git. The production data path should later persist each nightly snapshot into Postgres/Supabase:
-
-```text
-catalog_items
-catalog_prices
-catalog_source_checks
-catalog_promotions
-quality_evidence
-```
-
-That enables price-change history, expiration tracking, and stale-source alerts without slowing down planning requests.
-
-## 4. Nightly refresh
-
-`.github/workflows/catalog-refresh.yml` runs at 18:15 UTC each day.
-
-The refresh script:
-
-1. loads the previous snapshot
-2. fetches official sources
-3. applies provider-specific adapters
-4. changes a price only when a known pattern can be confidently parsed
-5. preserves the last known value on parsing/fetch failure
-6. records source-check results
-7. writes the new snapshot
-8. commits only if the file changed
-
-This is deliberately conservative. Silent bad price updates are worse than temporarily stale data.
-
-## 5. Planning models
-
-The server has two modes.
-
-### Deterministic router
-
-No API key required. It classifies the job, creates four execution steps, computes known costs, and routes according to budget/preferences.
-
-### Optional reasoning model
-
-Configured with:
-
-- `PLANNER_API_KEY`
-- `PLANNER_BASE_URL`
-- `PLANNER_MODEL`
-
-or `DEEPSEEK_API_KEY`.
-
-The prompt contains only the user's constraints and the already-filtered candidate set. Returned model/tool IDs are validated before use. Any invented ID is ignored.
-
-This lets Handoff swap GLM, DeepSeek, OpenRouter routes, or another provider without changing product logic.
-
-## 6. Cost semantics
-
-Each selected route carries a cost basis:
-
-- **verified** — stored numeric source data
-- **owned** — user's existing subscription, $0 incremental
-- **free** — catalog indicates an adequate free route
-- **estimated** — current provider uses credits or another hard-to-normalize unit
-- **unknown** — must be checked before purchase
-
-The UI sums known costs only and explicitly counts steps that require a price re-check.
-
-## 7. Frontend information architecture
-
-### Home
-
-One dominant project input plus only the constraints that materially change the route.
-
-### Explore
-
-Outcome-first discovery with compact filters. Users browse projects, not model names.
-
-### Plan
-
-Immediate answer first:
-
-- total known spend vs budget
-- Prepare → Make → Check → Publish
-- one default tool/model per task
-- short reason
-- expected output
-- optional alternatives
-
-### Agent handoff
-
-A compact Markdown block that carries the goal, budget, selected route, deliverables, and guardrails into another coding/chat agent.
-
-## 8. Data quality
-
-A recommendation may be surfaced even when it has not been directly benchmarked, but that status must remain visible.
-
-Current evidence labels are intentionally simple:
-
-- tested
-- reviewed
-- not tested
-
-A later benchmark service can add task-specific scores without changing the planner contract.
-
-## 9. Deployment
-
-The Express server serves Vite's built frontend in production. The build copies the catalog snapshot into `dist/data` as a fallback.
-
-The app can be hosted on any Node-compatible platform. No database is required for the current foundation.
+Known limits: source coverage is deliberately partial; pricing and account limits can change; human time, setup, hardware and retries are excluded. A static host needs separate API hosting. No live provider credential test or hosted database provisioning was performed. Model quality labels remain untested until real task evaluations exist.

@@ -1,148 +1,206 @@
-
-import fs from 'fs';
-import path from 'path';
-
-const catalogPath = path.join(process.cwd(), 'data', 'catalog.snapshot.json');
-const snapshot = JSON.parse(fs.readFileSync(catalogPath, 'utf8')) as any;
-const now = new Date().toISOString();
-
-type CheckResult = {
-  source: string;
-  ok: boolean;
-  checkedAt: string;
-  note: string;
-};
-
-const checks: CheckResult[] = [];
-
-async function fetchText(url: string) {
+import fs from "node:fs";
+import path from "node:path";
+import { pathToFileURL } from "node:url";
+import {
+  validateCatalog,
+  clearCatalogCache,
+  type CatalogSnapshot,
+  type SourceCheck,
+} from "../lib/catalog";
+import { pricingAdapter, parserVersion } from "../lib/providers/pricing";
+export async function fetchSource(url: string) {
+  if (new URL(url).protocol !== "https:")
+    throw new Error("Source requires HTTPS.");
   const response = await fetch(url, {
+    signal: AbortSignal.timeout(12000),
     headers: {
-      'user-agent': 'HandoffCatalogBot/0.2 (+https://github.com/0xAshraFF/hand-off)'
-    }
+      "User-Agent":
+        "HandoffCatalogBot/0.3 (+https://github.com/0xAshraFF/hand-off)",
+    },
   });
-  if (!response.ok) throw new Error(String(response.status) + ' ' + response.statusText);
-  return response.text();
-}
-
-function item(id: string) {
-  return snapshot.items.find((entry: any) => entry.id === id);
-}
-
-async function checkGoogleImagePricing() {
-  const url = 'https://ai.google.dev/gemini-api/docs/pricing';
-  try {
-    const html = await fetchText(url);
-    const target = item('gemini-3-1-flash-image');
-    const match = html.match(/\$0\.067\s*(?:per|\/)?\s*1K image/i);
-    if (target && match) {
-      target.pricing.unitCost = 0.067;
-      target.pricing.unit = '1K image';
-      target.lastVerified = now;
-      checks.push({ source: url, ok: true, checkedAt: now, note: 'Gemini 3.1 Flash Image 1K output price verified.' });
-      return;
+  if (!response.ok) throw new Error("Source returned HTTP " + response.status);
+  const reader = response.body?.getReader();
+  if (!reader) throw new Error("Empty source response.");
+  let bytes = 0;
+  const chunks: Uint8Array[] = [];
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    bytes += value.length;
+    if (bytes > 3e6) {
+      await reader.cancel();
+      throw new Error("Source too large.");
     }
-    checks.push({ source: url, ok: false, checkedAt: now, note: 'Pricing page loaded but the known 1K image pattern was not found; previous value preserved.' });
-  } catch (error: any) {
-    checks.push({ source: url, ok: false, checkedAt: now, note: 'Fetch failed: ' + (error?.message || 'unknown error') });
+    chunks.push(value);
   }
+  return Buffer.concat(chunks).toString("utf8");
 }
-
-async function checkAlibabaImagePricing() {
-  const url = 'https://www.alibabacloud.com/help/en/model-studio/model-pricing';
-  try {
-    const html = await fetchText(url);
-    const target = item('qwen-image-2-0');
-    const match = html.match(/qwen-image-2\.0[\s\S]{0,900}?\$0\.035\s*\/\s*image/i);
-    if (target && match) {
-      target.pricing.unitCost = 0.035;
-      target.pricing.unit = 'image';
-      target.lastVerified = now;
-      checks.push({ source: url, ok: true, checkedAt: now, note: 'Qwen Image 2.0 international per-image price verified.' });
-      return;
-    }
-    checks.push({ source: url, ok: false, checkedAt: now, note: 'Pricing page loaded but the expected Qwen Image 2.0 pattern was not found; previous value preserved.' });
-  } catch (error: any) {
-    checks.push({ source: url, ok: false, checkedAt: now, note: 'Fetch failed: ' + (error?.message || 'unknown error') });
-  }
-}
-
-async function checkDeepSeekPricing() {
-  const url = 'https://api-docs.deepseek.com/quick_start/pricing/';
-  try {
-    const html = await fetchText(url);
-    const flash = item('deepseek-flash');
-    const pro = item('deepseek-v4-pro');
-
-    const hasFlash = /deepseek-flash/i.test(html);
-    const hasPro = /deepseek-v4-pro/i.test(html);
-    const hasPeakFlash = /0\.3[\s\S]{0,900}?1\.2/i.test(html);
-    const hasPeakPro = /1\.32[\s\S]{0,900}?3\.96/i.test(html);
-
-    if (flash && hasFlash && hasPeakFlash) {
-      flash.pricing.inputPer1M = 0.30;
-      flash.pricing.outputPer1M = 1.20;
-      flash.lastVerified = now;
-    }
-    if (pro && hasPro && hasPeakPro) {
-      pro.pricing.inputPer1M = 1.32;
-      pro.pricing.outputPer1M = 3.96;
-      pro.lastVerified = now;
-    }
-
-    checks.push({
-      source: url,
-      ok: Boolean(hasFlash && hasPro),
+export async function refreshSnapshot(
+  previous: CatalogSnapshot,
+  fetcher: (url: string) => Promise<string> = fetchSource,
+  now = new Date().toISOString(),
+) {
+  const next = structuredClone(validateCatalog(previous));
+  const checks: SourceCheck[] = [];
+  const history = next.priceHistory || [];
+  const offerHistory = next.offerHistory || [];
+  const cache = new Map<string, Promise<string>>();
+  for (const item of next.items) {
+    const adapter = pricingAdapter(item);
+    const check: SourceCheck = {
+      source: item.sourceUrl,
+      itemId: item.id,
+      ok: false,
       checkedAt: now,
-      note: hasFlash && hasPro
-        ? 'DeepSeek model availability verified; recognized price patterns update stored peak rates.'
-        : 'DeepSeek pricing page loaded but model markers changed; previous values preserved.'
-    });
-  } catch (error: any) {
-    checks.push({ source: url, ok: false, checkedAt: now, note: 'Fetch failed: ' + (error?.message || 'unknown error') });
-  }
-}
-
-async function checkSourceReachability(id: string) {
-  const target = item(id);
-  if (!target?.sourceUrl) return;
-  try {
-    const response = await fetch(target.sourceUrl, {
-      method: 'GET',
-      headers: { 'user-agent': 'HandoffCatalogBot/0.2 (+https://github.com/0xAshraFF/hand-off)' }
-    });
-    if (response.ok) target.lastVerified = now;
-    checks.push({
-      source: target.sourceUrl,
-      ok: response.ok,
+      note: "",
+      parserVersion: adapter ? parserVersion : "reachability-v1",
+      priceVerified: false,
+      changeDetected: false,
+    };
+    try {
+      if (!cache.has(item.sourceUrl))
+        cache.set(item.sourceUrl, fetcher(item.sourceUrl));
+      const html = await cache.get(item.sourceUrl)!;
+      if (adapter) {
+        const parsed = adapter(html, item);
+        const oldPricing = structuredClone(item.pricing),
+          oldTier = structuredClone(item.freeTier);
+        validateCatalog({
+          ...next,
+          items: next.items.map((candidate) =>
+            candidate.id === item.id
+              ? { ...item, pricing: parsed.pricing }
+              : candidate,
+          ),
+        });
+        check.changeDetected =
+          JSON.stringify(oldPricing) !== JSON.stringify(parsed.pricing);
+        history.push({
+          itemId: item.id,
+          oldValue: oldPricing,
+          newValue: parsed.pricing,
+          detectedAt: now,
+          source: item.sourceUrl,
+          parserVersion,
+          changed: check.changeDetected,
+        });
+        if (
+          parsed.freeTier &&
+          JSON.stringify(oldTier) !== JSON.stringify(parsed.freeTier)
+        ) {
+          offerHistory.push({
+            itemId: item.id,
+            oldValue: oldTier,
+            newValue: parsed.freeTier,
+            detectedAt: now,
+            source: item.sourceUrl,
+            kind: "free_tier",
+          });
+        }
+        if (item.id === "qwen-image-2-0" && parsed.freeTier) {
+          const id = "qwen-new-account-image-quota",
+            previousOffer = (next.offers || []).find((o) => o.id === id);
+          const offer = {
+            id,
+            toolId: item.id,
+            title: "Qwen image new-account quota",
+            status: parsed.freeTier.available ? "verified" : "removed",
+            description: parsed.freeTier.note,
+            eligibility:
+              "Only qualifying provider accounts and regions. Confirm activation date and remaining quota with Alibaba Cloud.",
+            limits: parsed.freeTier.note,
+            sourceUrl: item.sourceUrl,
+            lastVerified: now,
+            fallback:
+              "Use paid international image pricing at $" +
+              parsed.pricing.unitCost +
+              " per image; recalculate the route first.",
+          };
+          next.offers = [
+            ...(next.offers || []).filter((o) => o.id !== id),
+            offer,
+          ];
+          offerHistory.push({
+            offerId: id,
+            oldValue: previousOffer || null,
+            newValue: offer,
+            detectedAt: now,
+            source: item.sourceUrl,
+            event: "observed",
+            changed: JSON.stringify(previousOffer) !== JSON.stringify(offer),
+          });
+        }
+        item.pricing = parsed.pricing;
+        if (parsed.freeTier) item.freeTier = parsed.freeTier;
+        item.lastVerified = now;
+        item.pricingVerified = true;
+        check.priceVerified = true;
+        check.note = "Scoped model pricing parsed and validated.";
+      } else {
+        check.note =
+          "Official source reachable; no pricing parser. Price verification date retained.";
+      }
+      check.ok = true;
+    } catch {
+      check.note =
+        "Fetch or parser failed; previous prices and verification date retained.";
+      item.pricingVerified = item.pricingVerified ?? false;
+    }
+    item.sourceCheck = {
+      status: check.priceVerified
+        ? "verified"
+        : check.ok
+          ? "reachable"
+          : "failed",
       checkedAt: now,
-      note: response.ok ? target.name + ' source reachable.' : target.name + ' source returned ' + response.status + '.'
-    });
-  } catch (error: any) {
-    checks.push({ source: target.sourceUrl, ok: false, checkedAt: now, note: target.name + ' source fetch failed: ' + (error?.message || 'unknown error') });
+      note: check.note,
+    };
+    checks.push(check);
   }
+  next.generatedAt = now;
+  next.priceHistory = history;
+  next.offerHistory = offerHistory;
+  next.sourceChecks = [...(next.sourceChecks || []), ...checks];
+  next.policy = {
+    ...next.policy,
+    lastRefreshResult: {
+      checkedAt: now,
+      successfulSources: checks.filter((c) => c.ok).length,
+      verifiedPrices: checks.filter((c) => c.priceVerified).length,
+      failedSources: checks.filter((c) => !c.ok).length,
+    },
+  };
+  return validateCatalog(next);
 }
-
-await Promise.all([
-  checkGoogleImagePricing(),
-  checkAlibabaImagePricing(),
-  checkDeepSeekPricing(),
-  checkSourceReachability('glm-5-3'),
-  checkSourceReachability('claude-sonnet'),
-  checkSourceReachability('chatgpt-plus'),
-  checkSourceReachability('cloudflare-pages')
-]);
-
-snapshot.generatedAt = now;
-snapshot.sourceChecks = checks;
-snapshot.policy = {
-  ...(snapshot.policy || {}),
-  lastRefreshResult: {
-    checkedAt: now,
-    successfulSources: checks.filter((check) => check.ok).length,
-    failedSources: checks.filter((check) => !check.ok).length
+export async function refreshCatalog(
+  root = process.cwd(),
+  fetcher = fetchSource,
+) {
+  const file = path.join(root, "data", "catalog.snapshot.json");
+  const before = fs.readFileSync(file, "utf8"),
+    previous = validateCatalog(JSON.parse(before));
+  const next = await refreshSnapshot(previous, fetcher);
+  if (fs.readFileSync(file, "utf8") !== before)
+    throw new Error(
+      "Catalog changed during refresh; retry to preserve concurrent edits.",
+    );
+  const temporary = file + "." + process.pid + ".tmp";
+  try {
+    fs.writeFileSync(temporary, JSON.stringify(next, null, 2) + "\n");
+    fs.renameSync(temporary, file);
+  } finally {
+    if (fs.existsSync(temporary)) fs.unlinkSync(temporary);
   }
-};
-
-fs.writeFileSync(catalogPath, JSON.stringify(snapshot, null, 2) + '\n');
-console.log('Catalog refreshed:', snapshot.policy.lastRefreshResult);
+  clearCatalogCache();
+  return next.policy.lastRefreshResult;
+}
+if (
+  process.argv[1] &&
+  import.meta.url === pathToFileURL(path.resolve(process.argv[1])).href
+)
+  refreshCatalog()
+    .then((result) => console.log("Catalog refresh:", result))
+    .catch(() => {
+      console.error("Catalog refresh failed; previous snapshot retained.");
+      process.exitCode = 1;
+    });
