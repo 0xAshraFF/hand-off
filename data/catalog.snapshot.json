@@ -1,0 +1,466 @@
+{
+  "version": 1,
+  "generatedAt": "2026-10-04T09:30:00Z",
+  "policy": {
+    "note": "Handoff recommends from verified catalog data. The planner must not invent prices.",
+    "refreshCadence": "nightly",
+    "volatileMaxAgeHours": 36
+  },
+  "items": [
+    {
+      "id": "qwen-image-2-0",
+      "name": "Qwen Image 2.0",
+      "provider": "Alibaba Cloud Model Studio",
+      "kind": "image",
+      "tasks": [
+        "image generation",
+        "product ads",
+        "creative assets",
+        "text in image"
+      ],
+      "pricing": {
+        "type": "per_image",
+        "currency": "USD",
+        "unitCost": 0.035,
+        "unit": "image",
+        "scope": "International"
+      },
+      "freeTier": {
+        "available": true,
+        "note": "Official pricing page lists a 100-image quota; eligibility/region conditions apply."
+      },
+      "access": {
+        "api": true,
+        "web": true,
+        "local": false
+      },
+      "quality": {
+        "status": "reviewed",
+        "note": "Strong value route for image generation and text rendering."
+      },
+      "sourceUrl": "https://www.alibabacloud.com/help/en/model-studio/model-pricing",
+      "lastVerified": "2026-10-04T09:30:00Z",
+      "tags": [
+        "chinese-model",
+        "budget",
+        "image",
+        "api"
+      ]
+    },
+    {
+      "id": "gemini-3-1-flash-image",
+      "name": "Gemini 3.1 Flash Image (Nano Banana 2)",
+      "provider": "Google",
+      "kind": "image",
+      "tasks": [
+        "image generation",
+        "image editing",
+        "product ads",
+        "creative assets"
+      ],
+      "pricing": {
+        "type": "per_image",
+        "currency": "USD",
+        "unitCost": 0.067,
+        "unit": "1K image",
+        "scope": "Standard"
+      },
+      "freeTier": {
+        "available": false,
+        "note": "API pricing page lists no paid-tier free quota for image output."
+      },
+      "access": {
+        "api": true,
+        "web": true,
+        "local": false
+      },
+      "quality": {
+        "status": "reviewed",
+        "note": "Fast, flexible image generation; useful quality upgrade when budget allows."
+      },
+      "sourceUrl": "https://ai.google.dev/gemini-api/docs/pricing",
+      "lastVerified": "2026-10-04T09:30:00Z",
+      "tags": [
+        "google",
+        "quality",
+        "image",
+        "api"
+      ]
+    },
+    {
+      "id": "deepseek-flash",
+      "name": "DeepSeek V4.1 Flash",
+      "provider": "DeepSeek",
+      "kind": "llm",
+      "tasks": [
+        "planning",
+        "writing",
+        "research",
+        "coding",
+        "vision"
+      ],
+      "pricing": {
+        "type": "token",
+        "currency": "USD",
+        "inputPer1M": 0.3,
+        "outputPer1M": 1.2,
+        "scope": "Peak; off-peak is lower"
+      },
+      "freeTier": {
+        "available": false,
+        "note": "Usage-based API."
+      },
+      "access": {
+        "api": true,
+        "web": true,
+        "local": false
+      },
+      "quality": {
+        "status": "reviewed",
+        "note": "Very strong price/performance for high-volume planning and agent work."
+      },
+      "sourceUrl": "https://api-docs.deepseek.com/quick_start/pricing/",
+      "lastVerified": "2026-10-04T09:30:00Z",
+      "tags": [
+        "chinese-model",
+        "budget",
+        "planner",
+        "coding",
+        "reasoning"
+      ]
+    },
+    {
+      "id": "deepseek-v4-pro",
+      "name": "DeepSeek V4 Pro",
+      "provider": "DeepSeek",
+      "kind": "llm",
+      "tasks": [
+        "planning",
+        "complex reasoning",
+        "coding",
+        "agent work"
+      ],
+      "pricing": {
+        "type": "token",
+        "currency": "USD",
+        "inputPer1M": 1.32,
+        "outputPer1M": 3.96,
+        "scope": "Peak; off-peak is lower"
+      },
+      "freeTier": {
+        "available": false,
+        "note": "Usage-based API."
+      },
+      "access": {
+        "api": true,
+        "web": true,
+        "local": false
+      },
+      "quality": {
+        "status": "reviewed",
+        "note": "Higher-capability DeepSeek route for complex planning and agent tasks."
+      },
+      "sourceUrl": "https://api-docs.deepseek.com/quick_start/pricing/",
+      "lastVerified": "2026-10-04T09:30:00Z",
+      "tags": [
+        "chinese-model",
+        "quality",
+        "planner",
+        "coding",
+        "reasoning"
+      ]
+    },
+    {
+      "id": "glm-5-3",
+      "name": "GLM 5.3",
+      "provider": "Z.ai",
+      "kind": "llm",
+      "tasks": [
+        "planning",
+        "coding",
+        "agent handoff",
+        "long-horizon work"
+      ],
+      "pricing": {
+        "type": "usage",
+        "currency": "USD",
+        "scope": "Usage-based; price resolved by nightly source adapter"
+      },
+      "freeTier": {
+        "available": true,
+        "note": "Z.ai documents trial quota and paid coding plans; API billing may differ."
+      },
+      "access": {
+        "api": true,
+        "web": true,
+        "local": false
+      },
+      "quality": {
+        "status": "reviewed",
+        "note": "Strong candidate for project decomposition, coding and agent-ready handoffs."
+      },
+      "sourceUrl": "https://z.ai/pricing",
+      "lastVerified": "2026-10-04T09:30:00Z",
+      "tags": [
+        "chinese-model",
+        "planner",
+        "coding",
+        "reasoning"
+      ]
+    },
+    {
+      "id": "claude-sonnet",
+      "name": "Claude Sonnet",
+      "provider": "Anthropic",
+      "kind": "coding",
+      "tasks": [
+        "coding",
+        "architecture",
+        "review",
+        "agent work"
+      ],
+      "pricing": {
+        "type": "subscription_or_api",
+        "currency": "USD",
+        "scope": "Use owned subscription when available; API billed separately"
+      },
+      "freeTier": {
+        "available": false,
+        "note": "Subscription access and API billing are separate."
+      },
+      "access": {
+        "api": true,
+        "web": true,
+        "local": false
+      },
+      "quality": {
+        "status": "tested",
+        "note": "Premium route when implementation quality is more important than minimum spend."
+      },
+      "sourceUrl": "https://www.anthropic.com/pricing",
+      "lastVerified": "2026-10-04T09:30:00Z",
+      "tags": [
+        "premium",
+        "coding",
+        "agent"
+      ]
+    },
+    {
+      "id": "chatgpt-plus",
+      "name": "ChatGPT Plus",
+      "provider": "OpenAI",
+      "kind": "subscription",
+      "tasks": [
+        "planning",
+        "writing",
+        "analysis",
+        "review"
+      ],
+      "pricing": {
+        "type": "subscription",
+        "currency": "USD",
+        "scope": "Existing subscription can reduce incremental project cost"
+      },
+      "freeTier": {
+        "available": false,
+        "note": "Chat subscription does not include API credits."
+      },
+      "access": {
+        "api": false,
+        "web": true,
+        "local": false
+      },
+      "quality": {
+        "status": "tested",
+        "note": "Good zero-incremental-cost route when already owned."
+      },
+      "sourceUrl": "https://openai.com/chatgpt/pricing/",
+      "lastVerified": "2026-10-04T09:30:00Z",
+      "tags": [
+        "subscription",
+        "owned-tool"
+      ]
+    },
+    {
+      "id": "kling",
+      "name": "Kling",
+      "provider": "Kuaishou",
+      "kind": "video",
+      "tasks": [
+        "text to video",
+        "image to video",
+        "short-form video"
+      ],
+      "pricing": {
+        "type": "credits",
+        "currency": "USD",
+        "scope": "Usage varies by mode and provider route"
+      },
+      "freeTier": {
+        "available": true,
+        "note": "Free/credit conditions vary by account and region."
+      },
+      "access": {
+        "api": true,
+        "web": true,
+        "local": false
+      },
+      "quality": {
+        "status": "reviewed",
+        "note": "Useful value route for generated video clips."
+      },
+      "sourceUrl": "https://klingai.com/",
+      "lastVerified": "2026-10-04T09:30:00Z",
+      "tags": [
+        "chinese-model",
+        "video",
+        "creative"
+      ]
+    },
+    {
+      "id": "capcut",
+      "name": "CapCut",
+      "provider": "ByteDance",
+      "kind": "editor",
+      "tasks": [
+        "video editing",
+        "captions",
+        "social publishing"
+      ],
+      "pricing": {
+        "type": "free_plus_subscription",
+        "currency": "USD",
+        "scope": "Free tier plus paid plans"
+      },
+      "freeTier": {
+        "available": true,
+        "note": "Feature/region limits vary."
+      },
+      "access": {
+        "api": false,
+        "web": true,
+        "local": true
+      },
+      "quality": {
+        "status": "tested",
+        "note": "Practical social-video editing route."
+      },
+      "sourceUrl": "https://www.capcut.com/",
+      "lastVerified": "2026-10-04T09:30:00Z",
+      "tags": [
+        "editing",
+        "free-tier",
+        "video"
+      ]
+    },
+    {
+      "id": "davinci-resolve",
+      "name": "DaVinci Resolve",
+      "provider": "Blackmagic Design",
+      "kind": "editor",
+      "tasks": [
+        "video editing",
+        "color",
+        "audio"
+      ],
+      "pricing": {
+        "type": "free_plus_license",
+        "currency": "USD",
+        "scope": "Free desktop edition available"
+      },
+      "freeTier": {
+        "available": true,
+        "note": "Free desktop version available."
+      },
+      "access": {
+        "api": false,
+        "web": false,
+        "local": true
+      },
+      "quality": {
+        "status": "tested",
+        "note": "Strong local fallback with no recurring subscription."
+      },
+      "sourceUrl": "https://www.blackmagicdesign.com/products/davinciresolve",
+      "lastVerified": "2026-10-04T09:30:00Z",
+      "tags": [
+        "local",
+        "editing",
+        "free"
+      ]
+    },
+    {
+      "id": "canva",
+      "name": "Canva",
+      "provider": "Canva",
+      "kind": "design",
+      "tasks": [
+        "ad creative",
+        "presentation",
+        "thumbnail",
+        "social post"
+      ],
+      "pricing": {
+        "type": "free_plus_subscription",
+        "currency": "USD",
+        "scope": "Free tier plus paid plans"
+      },
+      "freeTier": {
+        "available": true,
+        "note": "Free tier available; premium features vary."
+      },
+      "access": {
+        "api": true,
+        "web": true,
+        "local": false
+      },
+      "quality": {
+        "status": "tested",
+        "note": "Good finishing/layout route for non-technical users."
+      },
+      "sourceUrl": "https://www.canva.com/pricing/",
+      "lastVerified": "2026-10-04T09:30:00Z",
+      "tags": [
+        "design",
+        "free-tier",
+        "owned-tool"
+      ]
+    },
+    {
+      "id": "cloudflare-pages",
+      "name": "Cloudflare Pages",
+      "provider": "Cloudflare",
+      "kind": "hosting",
+      "tasks": [
+        "deploy website",
+        "static hosting",
+        "frontend hosting"
+      ],
+      "pricing": {
+        "type": "free_plus_usage",
+        "currency": "USD",
+        "scope": "Free tier available"
+      },
+      "freeTier": {
+        "available": true,
+        "note": "Free tier available subject to current platform limits."
+      },
+      "access": {
+        "api": true,
+        "web": true,
+        "local": false
+      },
+      "quality": {
+        "status": "tested",
+        "note": "Good low-cost deployment route for frontends and static sites."
+      },
+      "sourceUrl": "https://www.cloudflare.com/plans/developer-platform/",
+      "lastVerified": "2026-10-04T09:30:00Z",
+      "tags": [
+        "hosting",
+        "free-tier",
+        "web"
+      ]
+    }
+  ]
+}
