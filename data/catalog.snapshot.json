@@ -1,10 +1,16 @@
 {
   "version": 1,
-  "generatedAt": "2026-10-04T09:30:00Z",
+  "generatedAt": "2026-10-04T17:08:48.119Z",
   "policy": {
-    "note": "Handoff recommends from verified catalog data. The planner must not invent prices.",
+    "note": "Catalog facts carry official sources. Quality claims are untested unless a documented evaluation exists. Conditional quotas are never assumed free.",
     "refreshCadence": "nightly",
-    "volatileMaxAgeHours": 36
+    "volatileMaxAgeHours": 36,
+    "lastRefreshResult": {
+      "checkedAt": "2026-10-04T17:08:48.119Z",
+      "successfulSources": 12,
+      "verifiedPrices": 1,
+      "failedSources": 5
+    }
   },
   "items": [
     {
@@ -23,11 +29,16 @@
         "currency": "USD",
         "unitCost": 0.035,
         "unit": "image",
-        "scope": "International"
+        "scope": "International / Singapore API; output image rate",
+        "accessMode": "api"
       },
       "freeTier": {
         "available": true,
-        "note": "Official pricing page lists a 100-image quota; eligibility/region conditions apply."
+        "unconditional": false,
+        "quota": {
+          "images": 100
+        },
+        "note": "Official Singapore quota: 100 images. Account activation, eligibility and expiry conditions apply; confirm before assuming free usage."
       },
       "access": {
         "api": true,
@@ -35,17 +46,23 @@
         "local": false
       },
       "quality": {
-        "status": "reviewed",
-        "note": "Strong value route for image generation and text rendering."
+        "status": "not-tested",
+        "note": "Pricing or availability documentation recorded; output quality has not been evaluated by Handoff."
       },
       "sourceUrl": "https://www.alibabacloud.com/help/en/model-studio/model-pricing",
-      "lastVerified": "2026-10-04T09:30:00Z",
+      "lastVerified": "2026-10-04T17:08:48.119Z",
       "tags": [
         "chinese-model",
         "budget",
         "image",
         "api"
-      ]
+      ],
+      "pricingVerified": true,
+      "sourceCheck": {
+        "status": "verified",
+        "checkedAt": "2026-10-04T17:08:48.119Z",
+        "note": "Scoped model pricing parsed and validated."
+      }
     },
     {
       "id": "gemini-3-1-flash-image",
@@ -63,11 +80,13 @@
         "currency": "USD",
         "unitCost": 0.067,
         "unit": "1K image",
-        "scope": "Standard"
+        "scope": "Standard 1K output plus input tokens; batch and grounding excluded",
+        "inputPer1M": 0.5,
+        "accessMode": "api"
       },
       "freeTier": {
         "available": false,
-        "note": "API pricing page lists no paid-tier free quota for image output."
+        "note": "No free-tier image output in the standard API pricing table."
       },
       "access": {
         "api": true,
@@ -75,17 +94,23 @@
         "local": false
       },
       "quality": {
-        "status": "reviewed",
-        "note": "Fast, flexible image generation; useful quality upgrade when budget allows."
+        "status": "not-tested",
+        "note": "Pricing or availability documentation recorded; output quality has not been evaluated by Handoff."
       },
       "sourceUrl": "https://ai.google.dev/gemini-api/docs/pricing",
-      "lastVerified": "2026-10-04T09:30:00Z",
+      "lastVerified": "2026-10-04T16:56:29.332Z",
       "tags": [
         "google",
         "quality",
         "image",
         "api"
-      ]
+      ],
+      "pricingVerified": true,
+      "sourceCheck": {
+        "status": "failed",
+        "checkedAt": "2026-10-04T17:08:48.119Z",
+        "note": "Fetch or parser failed; previous prices and verification date retained."
+      }
     },
     {
       "id": "deepseek-flash",
@@ -97,14 +122,17 @@
         "writing",
         "research",
         "coding",
-        "vision"
+        "vision",
+        "review"
       ],
       "pricing": {
         "type": "token",
         "currency": "USD",
         "inputPer1M": 0.3,
         "outputPer1M": 1.2,
-        "scope": "Peak; off-peak is lower"
+        "scope": "Peak USD rates per 1M tokens; caching/off-peak may reduce spend",
+        "cachedInputPer1M": 0.006,
+        "accessMode": "api"
       },
       "freeTier": {
         "available": false,
@@ -116,18 +144,24 @@
         "local": false
       },
       "quality": {
-        "status": "reviewed",
-        "note": "Very strong price/performance for high-volume planning and agent work."
+        "status": "not-tested",
+        "note": "Pricing or availability documentation recorded; output quality has not been evaluated by Handoff."
       },
       "sourceUrl": "https://api-docs.deepseek.com/quick_start/pricing/",
-      "lastVerified": "2026-10-04T09:30:00Z",
+      "lastVerified": "2026-10-04T16:56:29.332Z",
       "tags": [
         "chinese-model",
         "budget",
         "planner",
         "coding",
         "reasoning"
-      ]
+      ],
+      "pricingVerified": true,
+      "sourceCheck": {
+        "status": "failed",
+        "checkedAt": "2026-10-04T17:08:48.119Z",
+        "note": "Fetch or parser failed; previous prices and verification date retained."
+      }
     },
     {
       "id": "deepseek-v4-pro",
@@ -138,14 +172,18 @@
         "planning",
         "complex reasoning",
         "coding",
-        "agent work"
+        "agent work",
+        "review",
+        "writing"
       ],
       "pricing": {
         "type": "token",
         "currency": "USD",
         "inputPer1M": 1.32,
         "outputPer1M": 3.96,
-        "scope": "Peak; off-peak is lower"
+        "scope": "Peak USD rates per 1M tokens; caching/off-peak may reduce spend",
+        "cachedInputPer1M": 0.044,
+        "accessMode": "api"
       },
       "freeTier": {
         "available": false,
@@ -157,18 +195,24 @@
         "local": false
       },
       "quality": {
-        "status": "reviewed",
-        "note": "Higher-capability DeepSeek route for complex planning and agent tasks."
+        "status": "not-tested",
+        "note": "Pricing or availability documentation recorded; output quality has not been evaluated by Handoff."
       },
       "sourceUrl": "https://api-docs.deepseek.com/quick_start/pricing/",
-      "lastVerified": "2026-10-04T09:30:00Z",
+      "lastVerified": "2026-10-04T16:56:29.332Z",
       "tags": [
         "chinese-model",
         "quality",
         "planner",
         "coding",
         "reasoning"
-      ]
+      ],
+      "pricingVerified": true,
+      "sourceCheck": {
+        "status": "failed",
+        "checkedAt": "2026-10-04T17:08:48.119Z",
+        "note": "Fetch or parser failed; previous prices and verification date retained."
+      }
     },
     {
       "id": "glm-5-3",
@@ -179,7 +223,9 @@
         "planning",
         "coding",
         "agent handoff",
-        "long-horizon work"
+        "long-horizon work",
+        "review",
+        "writing"
       ],
       "pricing": {
         "type": "usage",
@@ -196,8 +242,8 @@
         "local": false
       },
       "quality": {
-        "status": "reviewed",
-        "note": "Strong candidate for project decomposition, coding and agent-ready handoffs."
+        "status": "not-tested",
+        "note": "Pricing or availability documentation recorded; output quality has not been evaluated by Handoff."
       },
       "sourceUrl": "https://z.ai/pricing",
       "lastVerified": "2026-10-04T09:30:00Z",
@@ -206,7 +252,13 @@
         "planner",
         "coding",
         "reasoning"
-      ]
+      ],
+      "pricingVerified": false,
+      "sourceCheck": {
+        "status": "reachable",
+        "checkedAt": "2026-10-04T17:08:48.119Z",
+        "note": "Official source reachable; no pricing parser. Price verification date retained."
+      }
     },
     {
       "id": "claude-sonnet",
@@ -217,7 +269,9 @@
         "coding",
         "architecture",
         "review",
-        "agent work"
+        "agent work",
+        "planning",
+        "writing"
       ],
       "pricing": {
         "type": "subscription_or_api",
@@ -234,8 +288,8 @@
         "local": false
       },
       "quality": {
-        "status": "tested",
-        "note": "Premium route when implementation quality is more important than minimum spend."
+        "status": "not-tested",
+        "note": "Pricing or availability documentation recorded; output quality has not been evaluated by Handoff."
       },
       "sourceUrl": "https://www.anthropic.com/pricing",
       "lastVerified": "2026-10-04T09:30:00Z",
@@ -243,7 +297,13 @@
         "premium",
         "coding",
         "agent"
-      ]
+      ],
+      "pricingVerified": false,
+      "sourceCheck": {
+        "status": "reachable",
+        "checkedAt": "2026-10-04T17:08:48.119Z",
+        "note": "Official source reachable; no pricing parser. Price verification date retained."
+      }
     },
     {
       "id": "chatgpt-plus",
@@ -254,7 +314,8 @@
         "planning",
         "writing",
         "analysis",
-        "review"
+        "review",
+        "coding"
       ],
       "pricing": {
         "type": "subscription",
@@ -271,15 +332,21 @@
         "local": false
       },
       "quality": {
-        "status": "tested",
-        "note": "Good zero-incremental-cost route when already owned."
+        "status": "not-tested",
+        "note": "Pricing or availability documentation recorded; output quality has not been evaluated by Handoff."
       },
       "sourceUrl": "https://openai.com/chatgpt/pricing/",
       "lastVerified": "2026-10-04T09:30:00Z",
       "tags": [
         "subscription",
         "owned-tool"
-      ]
+      ],
+      "pricingVerified": false,
+      "sourceCheck": {
+        "status": "failed",
+        "checkedAt": "2026-10-04T17:08:48.119Z",
+        "note": "Fetch or parser failed; previous prices and verification date retained."
+      }
     },
     {
       "id": "kling",
@@ -294,7 +361,8 @@
       "pricing": {
         "type": "credits",
         "currency": "USD",
-        "scope": "Usage varies by mode and provider route"
+        "scope": "Usage varies by mode and provider route",
+        "accessMode": "api"
       },
       "freeTier": {
         "available": true,
@@ -306,8 +374,8 @@
         "local": false
       },
       "quality": {
-        "status": "reviewed",
-        "note": "Useful value route for generated video clips."
+        "status": "not-tested",
+        "note": "Pricing or availability documentation recorded; output quality has not been evaluated by Handoff."
       },
       "sourceUrl": "https://klingai.com/",
       "lastVerified": "2026-10-04T09:30:00Z",
@@ -315,7 +383,13 @@
         "chinese-model",
         "video",
         "creative"
-      ]
+      ],
+      "pricingVerified": false,
+      "sourceCheck": {
+        "status": "reachable",
+        "checkedAt": "2026-10-04T17:08:48.119Z",
+        "note": "Official source reachable; no pricing parser. Price verification date retained."
+      }
     },
     {
       "id": "capcut",
@@ -334,7 +408,11 @@
       },
       "freeTier": {
         "available": true,
-        "note": "Feature/region limits vary."
+        "note": "Feature/region limits vary.",
+        "accessModes": [
+          "web",
+          "local"
+        ]
       },
       "access": {
         "api": false,
@@ -342,8 +420,8 @@
         "local": true
       },
       "quality": {
-        "status": "tested",
-        "note": "Practical social-video editing route."
+        "status": "not-tested",
+        "note": "Pricing or availability documentation recorded; output quality has not been evaluated by Handoff."
       },
       "sourceUrl": "https://www.capcut.com/",
       "lastVerified": "2026-10-04T09:30:00Z",
@@ -351,7 +429,13 @@
         "editing",
         "free-tier",
         "video"
-      ]
+      ],
+      "pricingVerified": false,
+      "sourceCheck": {
+        "status": "reachable",
+        "checkedAt": "2026-10-04T17:08:48.119Z",
+        "note": "Official source reachable; no pricing parser. Price verification date retained."
+      }
     },
     {
       "id": "davinci-resolve",
@@ -361,7 +445,9 @@
       "tasks": [
         "video editing",
         "color",
-        "audio"
+        "audio",
+        "audio recording",
+        "video review"
       ],
       "pricing": {
         "type": "free_plus_license",
@@ -370,7 +456,7 @@
       },
       "freeTier": {
         "available": true,
-        "note": "Free desktop version available."
+        "note": "Free desktop version available. Manual narration recording and visual QA; human time excluded."
       },
       "access": {
         "api": false,
@@ -378,8 +464,8 @@
         "local": true
       },
       "quality": {
-        "status": "tested",
-        "note": "Strong local fallback with no recurring subscription."
+        "status": "not-tested",
+        "note": "Pricing or availability documentation recorded; output quality has not been evaluated by Handoff."
       },
       "sourceUrl": "https://www.blackmagicdesign.com/products/davinciresolve",
       "lastVerified": "2026-10-04T09:30:00Z",
@@ -387,7 +473,13 @@
         "local",
         "editing",
         "free"
-      ]
+      ],
+      "pricingVerified": false,
+      "sourceCheck": {
+        "status": "reachable",
+        "checkedAt": "2026-10-04T17:08:48.119Z",
+        "note": "Official source reachable; no pricing parser. Price verification date retained."
+      }
     },
     {
       "id": "canva",
@@ -407,7 +499,10 @@
       },
       "freeTier": {
         "available": true,
-        "note": "Free tier available; premium features vary."
+        "note": "Free tier available; premium features vary.",
+        "accessModes": [
+          "web"
+        ]
       },
       "access": {
         "api": true,
@@ -415,8 +510,8 @@
         "local": false
       },
       "quality": {
-        "status": "tested",
-        "note": "Good finishing/layout route for non-technical users."
+        "status": "not-tested",
+        "note": "Pricing or availability documentation recorded; output quality has not been evaluated by Handoff."
       },
       "sourceUrl": "https://www.canva.com/pricing/",
       "lastVerified": "2026-10-04T09:30:00Z",
@@ -424,7 +519,13 @@
         "design",
         "free-tier",
         "owned-tool"
-      ]
+      ],
+      "pricingVerified": false,
+      "sourceCheck": {
+        "status": "failed",
+        "checkedAt": "2026-10-04T17:08:48.119Z",
+        "note": "Fetch or parser failed; previous prices and verification date retained."
+      }
     },
     {
       "id": "cloudflare-pages",
@@ -451,8 +552,8 @@
         "local": false
       },
       "quality": {
-        "status": "tested",
-        "note": "Good low-cost deployment route for frontends and static sites."
+        "status": "not-tested",
+        "note": "Pricing or availability documentation recorded; output quality has not been evaluated by Handoff."
       },
       "sourceUrl": "https://www.cloudflare.com/plans/developer-platform/",
       "lastVerified": "2026-10-04T09:30:00Z",
@@ -460,7 +561,769 @@
         "hosting",
         "free-tier",
         "web"
-      ]
+      ],
+      "pricingVerified": false,
+      "sourceCheck": {
+        "status": "reachable",
+        "checkedAt": "2026-10-04T17:08:48.119Z",
+        "note": "Official source reachable; no pricing parser. Price verification date retained."
+      }
+    },
+    {
+      "id": "qwen3-4b-local",
+      "name": "Qwen3 4B via Ollama",
+      "provider": "Qwen / Ollama",
+      "kind": "llm",
+      "status": "active",
+      "tasks": [
+        "planning",
+        "writing",
+        "coding",
+        "analysis",
+        "review",
+        "research"
+      ],
+      "pricing": {
+        "type": "free",
+        "currency": "USD"
+      },
+      "freeTier": {
+        "available": true,
+        "unconditional": true,
+        "note": "Existing CPU computer with sufficient RAM (model download about 2.5 GB plus runtime memory). Vendor usage is free; electricity and setup excluded. Supply sources locally; no web research is implied."
+      },
+      "access": {
+        "api": false,
+        "web": false,
+        "local": true
+      },
+      "quality": {
+        "status": "not-tested",
+        "note": "Local software documentation reviewed; output quality and setup have not been evaluated."
+      },
+      "sourceUrl": "https://ollama.com/library/qwen3:4b",
+      "lastVerified": "2026-10-04T16:53:44.024Z",
+      "pricingVerified": true,
+      "hardware": "cpu",
+      "tags": [
+        "local",
+        "privacy"
+      ],
+      "hardwareNote": "Existing CPU computer with sufficient RAM (model download about 2.5 GB plus runtime memory). Vendor usage is free; electricity and setup excluded. Supply sources locally; no web research is implied.",
+      "sourceCheck": {
+        "status": "reachable",
+        "checkedAt": "2026-10-04T17:08:48.119Z",
+        "note": "Official source reachable; no pricing parser. Price verification date retained."
+      }
+    },
+    {
+      "id": "piper-tts-local",
+      "name": "Piper local narration",
+      "provider": "OHF Voice",
+      "kind": "audio",
+      "status": "active",
+      "tasks": [
+        "text to speech"
+      ],
+      "pricing": {
+        "type": "free",
+        "currency": "USD"
+      },
+      "freeTier": {
+        "available": true,
+        "unconditional": true,
+        "note": "Free local engine. Check each downloaded voice model license before commercial use; existing CPU hardware required."
+      },
+      "access": {
+        "api": false,
+        "web": false,
+        "local": true
+      },
+      "quality": {
+        "status": "not-tested",
+        "note": "Local software documentation reviewed; output quality and setup have not been evaluated."
+      },
+      "sourceUrl": "https://github.com/OHF-Voice/piper1-gpl",
+      "lastVerified": "2026-10-04T16:53:44.024Z",
+      "pricingVerified": true,
+      "hardware": "cpu",
+      "tags": [
+        "local",
+        "privacy"
+      ],
+      "hardwareNote": "Free local engine. Check each downloaded voice model license before commercial use; existing CPU hardware required.",
+      "sourceCheck": {
+        "status": "reachable",
+        "checkedAt": "2026-10-04T17:08:48.119Z",
+        "note": "Official source reachable; no pricing parser. Price verification date retained."
+      }
+    },
+    {
+      "id": "libreoffice-local",
+      "name": "LibreOffice",
+      "provider": "The Document Foundation",
+      "kind": "editor",
+      "status": "active",
+      "tasks": [
+        "writing",
+        "presentation",
+        "local publishing"
+      ],
+      "pricing": {
+        "type": "free",
+        "currency": "USD"
+      },
+      "freeTier": {
+        "available": true,
+        "unconditional": true,
+        "note": "Free local office suite on existing hardware. Human editing and export checks required."
+      },
+      "access": {
+        "api": false,
+        "web": false,
+        "local": true
+      },
+      "quality": {
+        "status": "not-tested",
+        "note": "Local software documentation reviewed; output quality and setup have not been evaluated."
+      },
+      "sourceUrl": "https://www.libreoffice.org/",
+      "lastVerified": "2026-10-04T16:53:44.024Z",
+      "pricingVerified": true,
+      "hardware": "cpu",
+      "tags": [
+        "local",
+        "privacy"
+      ],
+      "hardwareNote": "Free local office suite on existing hardware. Human editing and export checks required.",
+      "sourceCheck": {
+        "status": "reachable",
+        "checkedAt": "2026-10-04T17:08:48.119Z",
+        "note": "Official source reachable; no pricing parser. Price verification date retained."
+      }
+    },
+    {
+      "id": "tesseract-local",
+      "name": "Tesseract OCR",
+      "provider": "Tesseract contributors",
+      "kind": "ocr",
+      "status": "active",
+      "tasks": [
+        "document extraction"
+      ],
+      "pricing": {
+        "type": "free",
+        "currency": "USD"
+      },
+      "freeTier": {
+        "available": true,
+        "unconditional": true,
+        "note": "Free local OCR on existing CPU hardware; render PDF pages to images and validate extracted fields."
+      },
+      "access": {
+        "api": false,
+        "web": false,
+        "local": true
+      },
+      "quality": {
+        "status": "not-tested",
+        "note": "Local software documentation reviewed; output quality and setup have not been evaluated."
+      },
+      "sourceUrl": "https://tesseract-ocr.github.io/tessdoc/",
+      "lastVerified": "2026-10-04T16:53:44.024Z",
+      "pricingVerified": true,
+      "hardware": "cpu",
+      "tags": [
+        "local",
+        "privacy"
+      ],
+      "hardwareNote": "Free local OCR on existing CPU hardware; render PDF pages to images and validate extracted fields.",
+      "sourceCheck": {
+        "status": "reachable",
+        "checkedAt": "2026-10-04T17:08:48.119Z",
+        "note": "Official source reachable; no pricing parser. Price verification date retained."
+      }
+    },
+    {
+      "id": "comfyui-local",
+      "name": "ComfyUI local image workflow",
+      "provider": "ComfyUI contributors",
+      "kind": "image",
+      "status": "active",
+      "tasks": [
+        "image generation",
+        "image editing"
+      ],
+      "pricing": {
+        "type": "unknown",
+        "currency": "USD",
+        "scope": "Software is free; selected model licensing and hardware costs unconfirmed."
+      },
+      "freeTier": {
+        "available": false,
+        "unconditional": false,
+        "note": "Local workflow software is free. Model weights, license, suitable GPU memory and setup need confirmation."
+      },
+      "access": {
+        "api": false,
+        "web": false,
+        "local": true
+      },
+      "quality": {
+        "status": "not-tested",
+        "note": "Local software documentation reviewed; output quality and setup have not been evaluated."
+      },
+      "sourceUrl": "https://github.com/Comfy-Org/ComfyUI",
+      "lastVerified": "2026-10-04T16:53:44.024Z",
+      "pricingVerified": false,
+      "hardware": "gpu",
+      "tags": [
+        "local",
+        "privacy"
+      ],
+      "hardwareNote": "Local workflow software is free. Model weights, license, suitable GPU memory and setup need confirmation.",
+      "requiresGpu": true,
+      "sourceCheck": {
+        "status": "reachable",
+        "checkedAt": "2026-10-04T17:08:48.119Z",
+        "note": "Official source reachable; no pricing parser. Price verification date retained."
+      }
+    }
+  ],
+  "priceHistory": [
+    {
+      "itemId": "qwen-image-2-0",
+      "oldValue": {
+        "type": "per_image",
+        "currency": "USD",
+        "unitCost": 0.035,
+        "unit": "image",
+        "scope": "International"
+      },
+      "newValue": {
+        "type": "per_image",
+        "currency": "USD",
+        "unitCost": 0.035,
+        "unit": "image",
+        "scope": "International / Singapore API; output image rate"
+      },
+      "detectedAt": "2026-10-04T16:56:29.332Z",
+      "source": "https://www.alibabacloud.com/help/en/model-studio/model-pricing",
+      "parserVersion": "official-tables-v1",
+      "changed": true
+    },
+    {
+      "itemId": "gemini-3-1-flash-image",
+      "oldValue": {
+        "type": "per_image",
+        "currency": "USD",
+        "unitCost": 0.067,
+        "unit": "1K image",
+        "scope": "Standard"
+      },
+      "newValue": {
+        "type": "per_image",
+        "currency": "USD",
+        "unitCost": 0.067,
+        "unit": "1K image",
+        "scope": "Standard 1K output plus input tokens; batch and grounding excluded",
+        "inputPer1M": 0.5
+      },
+      "detectedAt": "2026-10-04T16:56:29.332Z",
+      "source": "https://ai.google.dev/gemini-api/docs/pricing",
+      "parserVersion": "official-tables-v1",
+      "changed": true
+    },
+    {
+      "itemId": "deepseek-flash",
+      "oldValue": {
+        "type": "token",
+        "currency": "USD",
+        "inputPer1M": 0.3,
+        "outputPer1M": 1.2,
+        "scope": "Peak; off-peak is lower"
+      },
+      "newValue": {
+        "type": "token",
+        "currency": "USD",
+        "inputPer1M": 0.3,
+        "outputPer1M": 1.2,
+        "scope": "Peak USD rates per 1M tokens; caching/off-peak may reduce spend",
+        "cachedInputPer1M": 0.006
+      },
+      "detectedAt": "2026-10-04T16:56:29.332Z",
+      "source": "https://api-docs.deepseek.com/quick_start/pricing/",
+      "parserVersion": "official-tables-v1",
+      "changed": true
+    },
+    {
+      "itemId": "deepseek-v4-pro",
+      "oldValue": {
+        "type": "token",
+        "currency": "USD",
+        "inputPer1M": 1.32,
+        "outputPer1M": 3.96,
+        "scope": "Peak; off-peak is lower"
+      },
+      "newValue": {
+        "type": "token",
+        "currency": "USD",
+        "inputPer1M": 1.32,
+        "outputPer1M": 3.96,
+        "scope": "Peak USD rates per 1M tokens; caching/off-peak may reduce spend",
+        "cachedInputPer1M": 0.044
+      },
+      "detectedAt": "2026-10-04T16:56:29.332Z",
+      "source": "https://api-docs.deepseek.com/quick_start/pricing/",
+      "parserVersion": "official-tables-v1",
+      "changed": true
+    },
+    {
+      "itemId": "qwen-image-2-0",
+      "oldValue": {
+        "type": "per_image",
+        "currency": "USD",
+        "unitCost": 0.035,
+        "unit": "image",
+        "scope": "International / Singapore API; output image rate"
+      },
+      "newValue": {
+        "type": "per_image",
+        "currency": "USD",
+        "unitCost": 0.035,
+        "unit": "image",
+        "scope": "International / Singapore API; output image rate"
+      },
+      "detectedAt": "2026-10-04T17:08:48.119Z",
+      "source": "https://www.alibabacloud.com/help/en/model-studio/model-pricing",
+      "parserVersion": "official-tables-v1",
+      "changed": false
+    }
+  ],
+  "offerHistory": [
+    {
+      "itemId": "qwen-image-2-0",
+      "oldValue": {
+        "available": true,
+        "note": "Official pricing page lists a 100-image quota; eligibility/region conditions apply."
+      },
+      "newValue": {
+        "available": true,
+        "unconditional": false,
+        "note": "Official Singapore quota: 100 images. Account activation, eligibility and expiry conditions apply; confirm before assuming free usage."
+      },
+      "detectedAt": "2026-10-04T16:56:29.332Z",
+      "source": "https://www.alibabacloud.com/help/en/model-studio/model-pricing",
+      "kind": "free_tier"
+    },
+    {
+      "itemId": "gemini-3-1-flash-image",
+      "oldValue": {
+        "available": false,
+        "note": "API pricing page lists no paid-tier free quota for image output."
+      },
+      "newValue": {
+        "available": false,
+        "note": "No free-tier image output in the standard API pricing table."
+      },
+      "detectedAt": "2026-10-04T16:56:29.332Z",
+      "source": "https://ai.google.dev/gemini-api/docs/pricing",
+      "kind": "free_tier"
+    },
+    {
+      "itemId": "qwen-image-2-0",
+      "oldValue": {
+        "available": true,
+        "unconditional": false,
+        "note": "Official Singapore quota: 100 images. Account activation, eligibility and expiry conditions apply; confirm before assuming free usage."
+      },
+      "newValue": {
+        "available": true,
+        "unconditional": false,
+        "quota": {
+          "images": 100
+        },
+        "note": "Official Singapore quota: 100 images. Account activation, eligibility and expiry conditions apply; confirm before assuming free usage."
+      },
+      "detectedAt": "2026-10-04T17:08:48.119Z",
+      "source": "https://www.alibabacloud.com/help/en/model-studio/model-pricing",
+      "kind": "free_tier"
+    },
+    {
+      "offerId": "qwen-new-account-image-quota",
+      "oldValue": null,
+      "newValue": {
+        "id": "qwen-new-account-image-quota",
+        "toolId": "qwen-image-2-0",
+        "title": "Qwen image new-account quota",
+        "status": "verified",
+        "description": "Official Singapore quota: 100 images. Account activation, eligibility and expiry conditions apply; confirm before assuming free usage.",
+        "eligibility": "Only qualifying provider accounts and regions. Confirm activation date and remaining quota with Alibaba Cloud.",
+        "limits": "Official Singapore quota: 100 images. Account activation, eligibility and expiry conditions apply; confirm before assuming free usage.",
+        "sourceUrl": "https://www.alibabacloud.com/help/en/model-studio/model-pricing",
+        "lastVerified": "2026-10-04T17:08:48.119Z",
+        "fallback": "Use paid international image pricing at $0.035 per image; recalculate the route first."
+      },
+      "detectedAt": "2026-10-04T17:08:48.119Z",
+      "source": "https://www.alibabacloud.com/help/en/model-studio/model-pricing",
+      "event": "observed",
+      "changed": true
+    }
+  ],
+  "sourceChecks": [
+    {
+      "source": "https://www.alibabacloud.com/help/en/model-studio/model-pricing",
+      "itemId": "qwen-image-2-0",
+      "ok": true,
+      "checkedAt": "2026-10-04T16:56:29.332Z",
+      "note": "Scoped model pricing parsed and validated.",
+      "parserVersion": "official-tables-v1",
+      "priceVerified": true,
+      "changeDetected": true
+    },
+    {
+      "source": "https://ai.google.dev/gemini-api/docs/pricing",
+      "itemId": "gemini-3-1-flash-image",
+      "ok": true,
+      "checkedAt": "2026-10-04T16:56:29.332Z",
+      "note": "Scoped model pricing parsed and validated.",
+      "parserVersion": "official-tables-v1",
+      "priceVerified": true,
+      "changeDetected": true
+    },
+    {
+      "source": "https://api-docs.deepseek.com/quick_start/pricing/",
+      "itemId": "deepseek-flash",
+      "ok": true,
+      "checkedAt": "2026-10-04T16:56:29.332Z",
+      "note": "Scoped model pricing parsed and validated.",
+      "parserVersion": "official-tables-v1",
+      "priceVerified": true,
+      "changeDetected": true
+    },
+    {
+      "source": "https://api-docs.deepseek.com/quick_start/pricing/",
+      "itemId": "deepseek-v4-pro",
+      "ok": true,
+      "checkedAt": "2026-10-04T16:56:29.332Z",
+      "note": "Scoped model pricing parsed and validated.",
+      "parserVersion": "official-tables-v1",
+      "priceVerified": true,
+      "changeDetected": true
+    },
+    {
+      "source": "https://z.ai/pricing",
+      "itemId": "glm-5-3",
+      "ok": true,
+      "checkedAt": "2026-10-04T16:56:29.332Z",
+      "note": "Official source reachable; no pricing parser. Price verification date retained.",
+      "parserVersion": "reachability-v1",
+      "priceVerified": false,
+      "changeDetected": false
+    },
+    {
+      "source": "https://www.anthropic.com/pricing",
+      "itemId": "claude-sonnet",
+      "ok": true,
+      "checkedAt": "2026-10-04T16:56:29.332Z",
+      "note": "Official source reachable; no pricing parser. Price verification date retained.",
+      "parserVersion": "reachability-v1",
+      "priceVerified": false,
+      "changeDetected": false
+    },
+    {
+      "source": "https://openai.com/chatgpt/pricing/",
+      "itemId": "chatgpt-plus",
+      "ok": false,
+      "checkedAt": "2026-10-04T16:56:29.332Z",
+      "note": "Fetch or parser failed; previous prices and verification date retained.",
+      "parserVersion": "reachability-v1",
+      "priceVerified": false,
+      "changeDetected": false
+    },
+    {
+      "source": "https://klingai.com/",
+      "itemId": "kling",
+      "ok": true,
+      "checkedAt": "2026-10-04T16:56:29.332Z",
+      "note": "Official source reachable; no pricing parser. Price verification date retained.",
+      "parserVersion": "reachability-v1",
+      "priceVerified": false,
+      "changeDetected": false
+    },
+    {
+      "source": "https://www.capcut.com/",
+      "itemId": "capcut",
+      "ok": true,
+      "checkedAt": "2026-10-04T16:56:29.332Z",
+      "note": "Official source reachable; no pricing parser. Price verification date retained.",
+      "parserVersion": "reachability-v1",
+      "priceVerified": false,
+      "changeDetected": false
+    },
+    {
+      "source": "https://www.blackmagicdesign.com/products/davinciresolve",
+      "itemId": "davinci-resolve",
+      "ok": true,
+      "checkedAt": "2026-10-04T16:56:29.332Z",
+      "note": "Official source reachable; no pricing parser. Price verification date retained.",
+      "parserVersion": "reachability-v1",
+      "priceVerified": false,
+      "changeDetected": false
+    },
+    {
+      "source": "https://www.canva.com/pricing/",
+      "itemId": "canva",
+      "ok": false,
+      "checkedAt": "2026-10-04T16:56:29.332Z",
+      "note": "Fetch or parser failed; previous prices and verification date retained.",
+      "parserVersion": "reachability-v1",
+      "priceVerified": false,
+      "changeDetected": false
+    },
+    {
+      "source": "https://www.cloudflare.com/plans/developer-platform/",
+      "itemId": "cloudflare-pages",
+      "ok": true,
+      "checkedAt": "2026-10-04T16:56:29.332Z",
+      "note": "Official source reachable; no pricing parser. Price verification date retained.",
+      "parserVersion": "reachability-v1",
+      "priceVerified": false,
+      "changeDetected": false
+    },
+    {
+      "source": "https://ollama.com/library/qwen3:4b",
+      "itemId": "qwen3-4b-local",
+      "ok": true,
+      "checkedAt": "2026-10-04T16:56:29.332Z",
+      "note": "Official source reachable; no pricing parser. Price verification date retained.",
+      "parserVersion": "reachability-v1",
+      "priceVerified": false,
+      "changeDetected": false
+    },
+    {
+      "source": "https://github.com/OHF-Voice/piper1-gpl",
+      "itemId": "piper-tts-local",
+      "ok": true,
+      "checkedAt": "2026-10-04T16:56:29.332Z",
+      "note": "Official source reachable; no pricing parser. Price verification date retained.",
+      "parserVersion": "reachability-v1",
+      "priceVerified": false,
+      "changeDetected": false
+    },
+    {
+      "source": "https://www.libreoffice.org/",
+      "itemId": "libreoffice-local",
+      "ok": true,
+      "checkedAt": "2026-10-04T16:56:29.332Z",
+      "note": "Official source reachable; no pricing parser. Price verification date retained.",
+      "parserVersion": "reachability-v1",
+      "priceVerified": false,
+      "changeDetected": false
+    },
+    {
+      "source": "https://tesseract-ocr.github.io/tessdoc/",
+      "itemId": "tesseract-local",
+      "ok": true,
+      "checkedAt": "2026-10-04T16:56:29.332Z",
+      "note": "Official source reachable; no pricing parser. Price verification date retained.",
+      "parserVersion": "reachability-v1",
+      "priceVerified": false,
+      "changeDetected": false
+    },
+    {
+      "source": "https://github.com/Comfy-Org/ComfyUI",
+      "itemId": "comfyui-local",
+      "ok": true,
+      "checkedAt": "2026-10-04T16:56:29.332Z",
+      "note": "Official source reachable; no pricing parser. Price verification date retained.",
+      "parserVersion": "reachability-v1",
+      "priceVerified": false,
+      "changeDetected": false
+    },
+    {
+      "source": "https://www.alibabacloud.com/help/en/model-studio/model-pricing",
+      "itemId": "qwen-image-2-0",
+      "ok": true,
+      "checkedAt": "2026-10-04T17:08:48.119Z",
+      "note": "Scoped model pricing parsed and validated.",
+      "parserVersion": "official-tables-v1",
+      "priceVerified": true,
+      "changeDetected": false
+    },
+    {
+      "source": "https://ai.google.dev/gemini-api/docs/pricing",
+      "itemId": "gemini-3-1-flash-image",
+      "ok": false,
+      "checkedAt": "2026-10-04T17:08:48.119Z",
+      "note": "Fetch or parser failed; previous prices and verification date retained.",
+      "parserVersion": "official-tables-v1",
+      "priceVerified": false,
+      "changeDetected": false
+    },
+    {
+      "source": "https://api-docs.deepseek.com/quick_start/pricing/",
+      "itemId": "deepseek-flash",
+      "ok": false,
+      "checkedAt": "2026-10-04T17:08:48.119Z",
+      "note": "Fetch or parser failed; previous prices and verification date retained.",
+      "parserVersion": "official-tables-v1",
+      "priceVerified": false,
+      "changeDetected": false
+    },
+    {
+      "source": "https://api-docs.deepseek.com/quick_start/pricing/",
+      "itemId": "deepseek-v4-pro",
+      "ok": false,
+      "checkedAt": "2026-10-04T17:08:48.119Z",
+      "note": "Fetch or parser failed; previous prices and verification date retained.",
+      "parserVersion": "official-tables-v1",
+      "priceVerified": false,
+      "changeDetected": false
+    },
+    {
+      "source": "https://z.ai/pricing",
+      "itemId": "glm-5-3",
+      "ok": true,
+      "checkedAt": "2026-10-04T17:08:48.119Z",
+      "note": "Official source reachable; no pricing parser. Price verification date retained.",
+      "parserVersion": "reachability-v1",
+      "priceVerified": false,
+      "changeDetected": false
+    },
+    {
+      "source": "https://www.anthropic.com/pricing",
+      "itemId": "claude-sonnet",
+      "ok": true,
+      "checkedAt": "2026-10-04T17:08:48.119Z",
+      "note": "Official source reachable; no pricing parser. Price verification date retained.",
+      "parserVersion": "reachability-v1",
+      "priceVerified": false,
+      "changeDetected": false
+    },
+    {
+      "source": "https://openai.com/chatgpt/pricing/",
+      "itemId": "chatgpt-plus",
+      "ok": false,
+      "checkedAt": "2026-10-04T17:08:48.119Z",
+      "note": "Fetch or parser failed; previous prices and verification date retained.",
+      "parserVersion": "reachability-v1",
+      "priceVerified": false,
+      "changeDetected": false
+    },
+    {
+      "source": "https://klingai.com/",
+      "itemId": "kling",
+      "ok": true,
+      "checkedAt": "2026-10-04T17:08:48.119Z",
+      "note": "Official source reachable; no pricing parser. Price verification date retained.",
+      "parserVersion": "reachability-v1",
+      "priceVerified": false,
+      "changeDetected": false
+    },
+    {
+      "source": "https://www.capcut.com/",
+      "itemId": "capcut",
+      "ok": true,
+      "checkedAt": "2026-10-04T17:08:48.119Z",
+      "note": "Official source reachable; no pricing parser. Price verification date retained.",
+      "parserVersion": "reachability-v1",
+      "priceVerified": false,
+      "changeDetected": false
+    },
+    {
+      "source": "https://www.blackmagicdesign.com/products/davinciresolve",
+      "itemId": "davinci-resolve",
+      "ok": true,
+      "checkedAt": "2026-10-04T17:08:48.119Z",
+      "note": "Official source reachable; no pricing parser. Price verification date retained.",
+      "parserVersion": "reachability-v1",
+      "priceVerified": false,
+      "changeDetected": false
+    },
+    {
+      "source": "https://www.canva.com/pricing/",
+      "itemId": "canva",
+      "ok": false,
+      "checkedAt": "2026-10-04T17:08:48.119Z",
+      "note": "Fetch or parser failed; previous prices and verification date retained.",
+      "parserVersion": "reachability-v1",
+      "priceVerified": false,
+      "changeDetected": false
+    },
+    {
+      "source": "https://www.cloudflare.com/plans/developer-platform/",
+      "itemId": "cloudflare-pages",
+      "ok": true,
+      "checkedAt": "2026-10-04T17:08:48.119Z",
+      "note": "Official source reachable; no pricing parser. Price verification date retained.",
+      "parserVersion": "reachability-v1",
+      "priceVerified": false,
+      "changeDetected": false
+    },
+    {
+      "source": "https://ollama.com/library/qwen3:4b",
+      "itemId": "qwen3-4b-local",
+      "ok": true,
+      "checkedAt": "2026-10-04T17:08:48.119Z",
+      "note": "Official source reachable; no pricing parser. Price verification date retained.",
+      "parserVersion": "reachability-v1",
+      "priceVerified": false,
+      "changeDetected": false
+    },
+    {
+      "source": "https://github.com/OHF-Voice/piper1-gpl",
+      "itemId": "piper-tts-local",
+      "ok": true,
+      "checkedAt": "2026-10-04T17:08:48.119Z",
+      "note": "Official source reachable; no pricing parser. Price verification date retained.",
+      "parserVersion": "reachability-v1",
+      "priceVerified": false,
+      "changeDetected": false
+    },
+    {
+      "source": "https://www.libreoffice.org/",
+      "itemId": "libreoffice-local",
+      "ok": true,
+      "checkedAt": "2026-10-04T17:08:48.119Z",
+      "note": "Official source reachable; no pricing parser. Price verification date retained.",
+      "parserVersion": "reachability-v1",
+      "priceVerified": false,
+      "changeDetected": false
+    },
+    {
+      "source": "https://tesseract-ocr.github.io/tessdoc/",
+      "itemId": "tesseract-local",
+      "ok": true,
+      "checkedAt": "2026-10-04T17:08:48.119Z",
+      "note": "Official source reachable; no pricing parser. Price verification date retained.",
+      "parserVersion": "reachability-v1",
+      "priceVerified": false,
+      "changeDetected": false
+    },
+    {
+      "source": "https://github.com/Comfy-Org/ComfyUI",
+      "itemId": "comfyui-local",
+      "ok": true,
+      "checkedAt": "2026-10-04T17:08:48.119Z",
+      "note": "Official source reachable; no pricing parser. Price verification date retained.",
+      "parserVersion": "reachability-v1",
+      "priceVerified": false,
+      "changeDetected": false
+    }
+  ],
+  "offers": [
+    {
+      "id": "qwen-new-account-image-quota",
+      "toolId": "qwen-image-2-0",
+      "title": "Qwen image new-account quota",
+      "status": "verified",
+      "description": "Official Singapore quota: 100 images. Account activation, eligibility and expiry conditions apply; confirm before assuming free usage.",
+      "eligibility": "Only qualifying provider accounts and regions. Confirm activation date and remaining quota with Alibaba Cloud.",
+      "limits": "Official Singapore quota: 100 images. Account activation, eligibility and expiry conditions apply; confirm before assuming free usage.",
+      "sourceUrl": "https://www.alibabacloud.com/help/en/model-studio/model-pricing",
+      "lastVerified": "2026-10-04T17:08:48.119Z",
+      "fallback": "Use paid international image pricing at $0.035 per image; recalculate the route first."
     }
   ]
 }
