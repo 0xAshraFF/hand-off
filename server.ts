@@ -1,14 +1,11 @@
 import express, { Request, Response } from 'express';
 import path from 'path';
 import fs from 'fs';
-import { fileURLToPath } from 'url';
 import { createServer as createViteServer } from 'vite';
 import dotenv from 'dotenv';
 
 dotenv.config();
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
 const app = express();
 const PORT = Number(process.env.PORT || 3000);
 
@@ -79,7 +76,6 @@ type PlanRequest = {
 function loadCatalog(): CatalogSnapshot {
   const candidates = [
     path.join(process.cwd(), 'data', 'catalog.snapshot.json'),
-    path.join(__dirname, 'data', 'catalog.snapshot.json'),
     path.join(process.cwd(), 'dist', 'data', 'catalog.snapshot.json')
   ];
 
