@@ -1,710 +1,738 @@
 import express, { Request, Response } from 'express';
 import path from 'path';
+import fs from 'fs';
 import { fileURLToPath } from 'url';
 import { createServer as createViteServer } from 'vite';
 import dotenv from 'dotenv';
-import { GoogleGenAI } from '@google/genai';
-import { AI_MODELS_CATALOG, calculateCost } from './src/data/models.ts';
-import { INITIAL_COMMUNITY_SUBMISSIONS } from './src/data/presets.ts';
-import { ProjectPlan, TaskPlan, TaskModelCost, ModelStrategy, CommunitySubmission } from './src/types.ts';
 
 dotenv.config();
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-
 const app = express();
-const PORT = 3000;
+const PORT = Number(process.env.PORT || 3000);
 
-app.use(express.json({ limit: '10mb' }));
+app.use(express.json({ limit: '2mb' }));
 
-// In-memory persistent community store
-let communityStore: CommunitySubmission[] = [...INITIAL_COMMUNITY_SUBMISSIONS];
+type Pricing = {
+  type: string;
+  currency: string;
+  unitCost?: number;
+  unit?: string;
+  inputPer1M?: number;
+  outputPer1M?: number;
+  scope?: string;
+};
 
-// Lazy Gemini client helper
-let aiClient: GoogleGenAI | null = null;
-function getGeminiClient(): GoogleGenAI | null {
-  const apiKey = process.env.GEMINI_API_KEY;
-  if (!apiKey) return null;
-  if (!aiClient) {
-    aiClient = new GoogleGenAI({ apiKey });
+type CatalogItem = {
+  id: string;
+  name: string;
+  provider: string;
+  kind: string;
+  tasks: string[];
+  pricing: Pricing;
+  freeTier?: { available: boolean; note?: string };
+  access?: { api?: boolean; web?: boolean; local?: boolean };
+  quality?: { status: string; note: string };
+  sourceUrl: string;
+  lastVerified: string;
+  tags: string[];
+};
+
+type CatalogSnapshot = {
+  version: number;
+  generatedAt: string;
+  policy: Record<string, unknown>;
+  items: CatalogItem[];
+};
+
+type Preference = 'free' | 'value' | 'quality';
+
+type PlanOption = {
+  toolId: string;
+  label: string;
+  cost: number | null;
+  costLabel: string;
+  costBasis: 'verified' | 'estimated' | 'owned' | 'free' | 'unknown';
+};
+
+type DraftTask = {
+  id: string;
+  stage: 'Prepare' | 'Make' | 'Check' | 'Publish';
+  title: string;
+  purpose: string;
+  expectedOutput: string;
+  options: PlanOption[];
+  selectedToolId: string;
+};
+
+type PlanRequest = {
+  projectName?: string;
+  goal: string;
+  budget?: number;
+  quantity?: number;
+  preference?: Preference;
+  ownedTools?: string[];
+  explanation?: 'guide' | 'details';
+};
+
+function loadCatalog(): CatalogSnapshot {
+  const candidates = [
+    path.join(process.cwd(), 'data', 'catalog.snapshot.json'),
+    path.join(__dirname, 'data', 'catalog.snapshot.json'),
+    path.join(process.cwd(), 'dist', 'data', 'catalog.snapshot.json')
+  ];
+
+  for (const filePath of candidates) {
+    if (fs.existsSync(filePath)) {
+      return JSON.parse(fs.readFileSync(filePath, 'utf8')) as CatalogSnapshot;
+    }
   }
-  return aiClient;
+  throw new Error('Catalog snapshot is missing');
 }
 
-// Health check
-app.get('/api/health', (req: Request, res: Response) => {
+function itemById(catalog: CatalogSnapshot, id: string) {
+  return catalog.items.find((item) => item.id === id);
+}
+
+function owned(ownedTools: string[], name: string) {
+  const haystack = ownedTools.map((x) => x.toLowerCase());
+  return haystack.some((x) => x.includes(name.toLowerCase()));
+}
+
+function tokenCost(item: CatalogItem | undefined, inputTokens: number, outputTokens: number) {
+  if (!item?.pricing.inputPer1M || !item?.pricing.outputPer1M) return null;
+  return Number(
+    ((inputTokens / 1_000_000) * item.pricing.inputPer1M +
+      (outputTokens / 1_000_000) * item.pricing.outputPer1M).toFixed(4)
+  );
+}
+
+function perUnitCost(item: CatalogItem | undefined, quantity: number) {
+  if (typeof item?.pricing.unitCost !== 'number') return null;
+  return Number((item.pricing.unitCost * quantity).toFixed(2));
+}
+
+function makeOption(
+  catalog: CatalogSnapshot,
+  toolId: string,
+  quantity: number,
+  params?: { inputTokens?: number; outputTokens?: number; owned?: boolean; estimate?: number; label?: string }
+): PlanOption {
+  const item = itemById(catalog, toolId);
+  let cost: number | null = null;
+  let costBasis: PlanOption['costBasis'] = 'unknown';
+  let costLabel = 'Price checked at plan time';
+
+  if (params?.owned) {
+    cost = 0;
+    costBasis = 'owned';
+    costLabel = 'Already owned — $0 incremental';
+  } else if (item?.pricing.type === 'per_image') {
+    cost = perUnitCost(item, quantity);
+    costBasis = 'verified';
+    costLabel = cost === null ? 'Usage based' : `~$${cost.toFixed(2)} for ${quantity}`;
+  } else if (item?.pricing.type === 'token') {
+    cost = tokenCost(item, params?.inputTokens || 30_000, params?.outputTokens || 10_000);
+    costBasis = 'verified';
+    costLabel = cost === null ? 'Usage based' : `~$${cost.toFixed(2)} API usage`;
+  } else if (typeof params?.estimate === 'number') {
+    cost = Number(params.estimate.toFixed(2));
+    costBasis = 'estimated';
+    costLabel = `~$${cost.toFixed(2)} estimate`;
+  } else if (item?.freeTier?.available && ['editor', 'design', 'hosting'].includes(item.kind)) {
+    cost = 0;
+    costBasis = 'free';
+    costLabel = 'Free route available';
+  }
+
+  return {
+    toolId,
+    label: params?.label || item?.name || toolId,
+    cost,
+    costLabel,
+    costBasis
+  };
+}
+
+function classifyGoal(goal: string) {
+  const text = goal.toLowerCase();
+  if (/video|reel|youtube|tiktok|short-form|short form|faceless/.test(text)) return 'video';
+  if (/image|photo|creative|poster|ad creative|product shot/.test(text)) return 'image';
+  if (/research|paper|literature|assistant|study/.test(text)) return 'research';
+  if (/pdf|invoice|receipt|extract|document|ocr/.test(text)) return 'documents';
+  if (/app|website|web app|tool|dashboard|automation|agent|saas|extension/.test(text)) return 'app';
+  return 'general';
+}
+
+function chooseByPreference(task: DraftTask, preference: Preference, budget: number) {
+  const priced = task.options.filter((o) => o.cost !== null);
+  if (!priced.length) return task.options[0]?.toolId || task.selectedToolId;
+
+  if (preference === 'free') {
+    const free = priced.find((o) => o.cost === 0);
+    if (free) return free.toolId;
+    return [...priced].sort((a, b) => (a.cost || 0) - (b.cost || 0))[0].toolId;
+  }
+
+  if (preference === 'quality') {
+    // Options are intentionally ordered from value to quality, so choose the last affordable one.
+    const affordable = priced.filter((o) => (o.cost || 0) <= Math.max(0.01, budget * 0.75));
+    return (affordable[affordable.length - 1] || priced[priced.length - 1]).toolId;
+  }
+
+  // Best value: choose first non-free paid option when it is comfortably in budget,
+  // otherwise take the cheapest known-cost route.
+  const affordable = priced.filter((o) => (o.cost || 0) <= Math.max(0.01, budget * 0.6));
+  return (affordable[0] || [...priced].sort((a, b) => (a.cost || 0) - (b.cost || 0))[0]).toolId;
+}
+
+function buildDraft(req: Required<Pick<PlanRequest, 'goal' | 'budget' | 'quantity' | 'preference' | 'ownedTools'>> & PlanRequest, catalog: CatalogSnapshot): DraftTask[] {
+  const kind = classifyGoal(req.goal);
+  const q = Math.max(1, Math.round(req.quantity));
+  const hasChatGPT = owned(req.ownedTools, 'chatgpt');
+  const hasClaude = owned(req.ownedTools, 'claude');
+  const hasCanva = owned(req.ownedTools, 'canva');
+  const hasCapCut = owned(req.ownedTools, 'capcut');
+
+  let tasks: DraftTask[];
+
+  if (kind === 'image') {
+    tasks = [
+      {
+        id: 'prepare',
+        stage: 'Prepare',
+        title: 'Define the creative brief',
+        purpose: 'Turn the goal into a concise brief, visual constraints and prompt set.',
+        expectedOutput: 'Approved brief + prompt variants',
+        options: [
+          makeOption(catalog, 'deepseek-flash', 1, { inputTokens: 18_000, outputTokens: 6_000 }),
+          makeOption(catalog, 'chatgpt-plus', 1, { owned: hasChatGPT }),
+          makeOption(catalog, 'glm-5-3', 1)
+        ],
+        selectedToolId: 'deepseek-flash'
+      },
+      {
+        id: 'make',
+        stage: 'Make',
+        title: `Generate ${q} final images`,
+        purpose: 'Create the requested image set with the best cost/quality fit.',
+        expectedOutput: `${q} production-ready images`,
+        options: [
+          makeOption(catalog, 'qwen-image-2-0', q),
+          makeOption(catalog, 'gemini-3-1-flash-image', q)
+        ],
+        selectedToolId: req.preference === 'quality' ? 'gemini-3-1-flash-image' : 'qwen-image-2-0'
+      },
+      {
+        id: 'check',
+        stage: 'Check',
+        title: 'Review consistency and text accuracy',
+        purpose: 'Reject weak variants and verify product, text and layout consistency.',
+        expectedOutput: 'QA checklist + accepted assets',
+        options: [
+          makeOption(catalog, 'deepseek-flash', 1, { inputTokens: 12_000, outputTokens: 4_000 }),
+          makeOption(catalog, 'chatgpt-plus', 1, { owned: hasChatGPT })
+        ],
+        selectedToolId: hasChatGPT ? 'chatgpt-plus' : 'deepseek-flash'
+      },
+      {
+        id: 'publish',
+        stage: 'Publish',
+        title: 'Finish and export',
+        purpose: 'Apply final sizing, brand layout and export variants.',
+        expectedOutput: 'Export pack in required aspect ratios',
+        options: [makeOption(catalog, 'canva', q, { owned: hasCanva })],
+        selectedToolId: 'canva'
+      }
+    ];
+  } else if (kind === 'video') {
+    tasks = [
+      {
+        id: 'prepare',
+        stage: 'Prepare',
+        title: 'Outline topics and write scripts',
+        purpose: 'Create hooks, scripts and scene directions before spending on generation.',
+        expectedOutput: `${q} approved scripts + shot list`,
+        options: [
+          makeOption(catalog, 'deepseek-flash', 1, { inputTokens: 30_000, outputTokens: 12_000 }),
+          makeOption(catalog, 'chatgpt-plus', 1, { owned: hasChatGPT }),
+          makeOption(catalog, 'glm-5-3', 1)
+        ],
+        selectedToolId: hasChatGPT ? 'chatgpt-plus' : 'deepseek-flash'
+      },
+      {
+        id: 'make',
+        stage: 'Make',
+        title: 'Generate voice and visual clips',
+        purpose: 'Generate only approved scenes, then assemble them into short-form videos.',
+        expectedOutput: `${q} rough-cut videos`,
+        options: [
+          makeOption(catalog, 'kling', q, { estimate: Math.max(1, q * 0.65) })
+        ],
+        selectedToolId: 'kling'
+      },
+      {
+        id: 'check',
+        stage: 'Check',
+        title: 'Edit, caption and review',
+        purpose: 'Fix pacing, captions, factual issues and visual inconsistencies.',
+        expectedOutput: `${q} polished videos`,
+        options: [
+          makeOption(catalog, 'capcut', q, { owned: hasCapCut }),
+          makeOption(catalog, 'davinci-resolve', q)
+        ],
+        selectedToolId: hasCapCut ? 'capcut' : 'davinci-resolve'
+      },
+      {
+        id: 'publish',
+        stage: 'Publish',
+        title: 'Prepare publish package',
+        purpose: 'Generate titles, descriptions, thumbnails and a simple measurement checklist.',
+        expectedOutput: 'Publish pack + 7-day review checklist',
+        options: [
+          makeOption(catalog, 'deepseek-flash', 1, { inputTokens: 12_000, outputTokens: 5_000 }),
+          makeOption(catalog, 'chatgpt-plus', 1, { owned: hasChatGPT })
+        ],
+        selectedToolId: hasChatGPT ? 'chatgpt-plus' : 'deepseek-flash'
+      }
+    ];
+  } else if (kind === 'app') {
+    tasks = [
+      {
+        id: 'prepare',
+        stage: 'Prepare',
+        title: 'Turn the idea into an implementation brief',
+        purpose: 'Define scope, user flow, acceptance criteria and technical constraints.',
+        expectedOutput: 'Build-ready brief + task list',
+        options: [
+          makeOption(catalog, 'deepseek-flash', 1, { inputTokens: 35_000, outputTokens: 12_000 }),
+          makeOption(catalog, 'glm-5-3', 1),
+          makeOption(catalog, 'chatgpt-plus', 1, { owned: hasChatGPT })
+        ],
+        selectedToolId: hasChatGPT ? 'chatgpt-plus' : 'deepseek-flash'
+      },
+      {
+        id: 'make',
+        stage: 'Make',
+        title: 'Build the working product',
+        purpose: 'Implement the smallest production-usable version, not a throwaway demo.',
+        expectedOutput: 'Working repo + setup instructions',
+        options: [
+          makeOption(catalog, 'glm-5-3', 1),
+          makeOption(catalog, 'deepseek-v4-pro', 1, { inputTokens: 120_000, outputTokens: 45_000 }),
+          makeOption(catalog, 'claude-sonnet', 1, { owned: hasClaude })
+        ],
+        selectedToolId: hasClaude ? 'claude-sonnet' : 'deepseek-v4-pro'
+      },
+      {
+        id: 'check',
+        stage: 'Check',
+        title: 'Review against acceptance criteria',
+        purpose: 'Check functional gaps, edge cases, security basics and deployment readiness.',
+        expectedOutput: 'QA report + fix list',
+        options: [
+          makeOption(catalog, 'deepseek-flash', 1, { inputTokens: 40_000, outputTokens: 10_000 }),
+          makeOption(catalog, 'glm-5-3', 1)
+        ],
+        selectedToolId: 'deepseek-flash'
+      },
+      {
+        id: 'publish',
+        stage: 'Publish',
+        title: 'Deploy and document',
+        purpose: 'Ship the app and leave a concise handoff for the next agent or developer.',
+        expectedOutput: 'Live deployment + README + handoff',
+        options: [makeOption(catalog, 'cloudflare-pages', 1)],
+        selectedToolId: 'cloudflare-pages'
+      }
+    ];
+  } else if (kind === 'research') {
+    tasks = [
+      {
+        id: 'prepare',
+        stage: 'Prepare',
+        title: 'Frame the research question',
+        purpose: 'Define the answer format, evidence bar and exclusions.',
+        expectedOutput: 'Research brief',
+        options: [
+          makeOption(catalog, 'deepseek-flash', 1, { inputTokens: 20_000, outputTokens: 6_000 }),
+          makeOption(catalog, 'chatgpt-plus', 1, { owned: hasChatGPT })
+        ],
+        selectedToolId: hasChatGPT ? 'chatgpt-plus' : 'deepseek-flash'
+      },
+      {
+        id: 'make',
+        stage: 'Make',
+        title: 'Analyze and synthesize the source set',
+        purpose: 'Extract claims, compare viewpoints and structure the answer.',
+        expectedOutput: 'Evidence-backed synthesis',
+        options: [
+          makeOption(catalog, 'deepseek-v4-pro', 1, { inputTokens: 90_000, outputTokens: 30_000 }),
+          makeOption(catalog, 'glm-5-3', 1)
+        ],
+        selectedToolId: req.preference === 'quality' ? 'deepseek-v4-pro' : 'glm-5-3'
+      },
+      {
+        id: 'check',
+        stage: 'Check',
+        title: 'Verify claims and citations',
+        purpose: 'Separate sourced facts from inference and flag weak evidence.',
+        expectedOutput: 'Verified notes + gaps',
+        options: [makeOption(catalog, 'deepseek-flash', 1, { inputTokens: 35_000, outputTokens: 8_000 })],
+        selectedToolId: 'deepseek-flash'
+      },
+      {
+        id: 'publish',
+        stage: 'Publish',
+        title: 'Package the research',
+        purpose: 'Produce the requested concise report and an agent-ready continuation prompt.',
+        expectedOutput: 'Final report + continuation handoff',
+        options: [
+          makeOption(catalog, 'deepseek-flash', 1, { inputTokens: 18_000, outputTokens: 8_000 }),
+          makeOption(catalog, 'chatgpt-plus', 1, { owned: hasChatGPT })
+        ],
+        selectedToolId: hasChatGPT ? 'chatgpt-plus' : 'deepseek-flash'
+      }
+    ];
+  } else {
+    // Documents and general tasks use the same conservative workflow.
+    tasks = [
+      {
+        id: 'prepare',
+        stage: 'Prepare',
+        title: 'Define inputs, outputs and edge cases',
+        purpose: 'Make the job precise before choosing tooling.',
+        expectedOutput: 'Input/output contract',
+        options: [
+          makeOption(catalog, 'deepseek-flash', 1, { inputTokens: 18_000, outputTokens: 5_000 }),
+          makeOption(catalog, 'chatgpt-plus', 1, { owned: hasChatGPT })
+        ],
+        selectedToolId: hasChatGPT ? 'chatgpt-plus' : 'deepseek-flash'
+      },
+      {
+        id: 'make',
+        stage: 'Make',
+        title: kind === 'documents' ? 'Extract and structure the information' : 'Execute the core work',
+        purpose: kind === 'documents' ? 'Convert the source material into clean structured data.' : 'Use the most appropriate verified route for the core task.',
+        expectedOutput: kind === 'documents' ? 'Structured dataset + exception list' : 'Working first result',
+        options: [
+          makeOption(catalog, 'deepseek-flash', 1, { inputTokens: 70_000, outputTokens: 18_000 }),
+          makeOption(catalog, 'deepseek-v4-pro', 1, { inputTokens: 70_000, outputTokens: 18_000 }),
+          makeOption(catalog, 'glm-5-3', 1)
+        ],
+        selectedToolId: req.preference === 'quality' ? 'deepseek-v4-pro' : 'deepseek-flash'
+      },
+      {
+        id: 'check',
+        stage: 'Check',
+        title: 'Validate the result',
+        purpose: 'Check accuracy, missing cases and user constraints.',
+        expectedOutput: 'QA checklist',
+        options: [makeOption(catalog, 'deepseek-flash', 1, { inputTokens: 20_000, outputTokens: 6_000 })],
+        selectedToolId: 'deepseek-flash'
+      },
+      {
+        id: 'publish',
+        stage: 'Publish',
+        title: 'Create the final handoff',
+        purpose: 'Package the result so a person or agent can continue without re-explaining the project.',
+        expectedOutput: 'Concise handoff',
+        options: [
+          makeOption(catalog, 'deepseek-flash', 1, { inputTokens: 12_000, outputTokens: 6_000 }),
+          makeOption(catalog, 'chatgpt-plus', 1, { owned: hasChatGPT })
+        ],
+        selectedToolId: hasChatGPT ? 'chatgpt-plus' : 'deepseek-flash'
+      }
+    ];
+  }
+
+  // Apply preference only when a task did not have a deliberately chosen default.
+  return tasks.map((task) => ({
+    ...task,
+    selectedToolId: task.selectedToolId || chooseByPreference(task, req.preference, req.budget)
+  }));
+}
+
+async function maybeRefineWithPlanner(
+  req: PlanRequest & { budget: number; quantity: number; preference: Preference; ownedTools: string[] },
+  catalog: CatalogSnapshot,
+  draft: DraftTask[]
+): Promise<{ tasks: DraftTask[]; model: string; used: boolean }> {
+  let apiKey = process.env.PLANNER_API_KEY || '';
+  let baseUrl = process.env.PLANNER_BASE_URL || '';
+  let model = process.env.PLANNER_MODEL || '';
+
+  if (!apiKey && process.env.DEEPSEEK_API_KEY) {
+    apiKey = process.env.DEEPSEEK_API_KEY;
+    baseUrl = 'https://api.deepseek.com';
+    model = model || 'deepseek-flash';
+  }
+
+  if (!apiKey || !baseUrl || !model) {
+    return { tasks: draft, model: 'deterministic router', used: false };
+  }
+
+  const candidates = draft.map((task) => ({
+    id: task.id,
+    stage: task.stage,
+    title: task.title,
+    purpose: task.purpose,
+    expectedOutput: task.expectedOutput,
+    options: task.options
+  }));
+
+  const prompt = {
+    project: {
+      goal: req.goal,
+      budget: req.budget,
+      quantity: req.quantity,
+      preference: req.preference,
+      ownedTools: req.ownedTools
+    },
+    rules: [
+      'Choose exactly one toolId from each task options array.',
+      'Never invent a model, tool, price, discount, free tier, benchmark or source.',
+      'Prefer zero incremental cost when an owned tool is adequate.',
+      'Stay within budget when known costs make that possible.',
+      'For best-value preference, do not pay more unless the quality difference matters to the stated job.',
+      'Return concise JSON only.'
+    ],
+    tasks: candidates
+  };
+
+  try {
+    const response = await fetch(`${baseUrl.replace(/\/$/, '')}/chat/completions`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${apiKey}`
+      },
+      body: JSON.stringify({
+        model,
+        temperature: 0.2,
+        response_format: { type: 'json_object' },
+        messages: [
+          {
+            role: 'system',
+            content:
+              'You are Handoff Planner. Route a project across already-verified candidates. You are a chooser, not a source of pricing facts.'
+          },
+          { role: 'user', content: JSON.stringify(prompt) }
+        ]
+      })
+    });
+
+    if (!response.ok) throw new Error(`Planner returned ${response.status}`);
+    const payload: any = await response.json();
+    const content = payload?.choices?.[0]?.message?.content;
+    const parsed = JSON.parse(content || '{}');
+    const selections: Record<string, string> = {};
+
+    for (const row of parsed.tasks || []) {
+      if (row?.id && row?.selectedToolId) selections[row.id] = row.selectedToolId;
+    }
+
+    const refined = draft.map((task) => {
+      const selected = selections[task.id];
+      const valid = selected && task.options.some((o) => o.toolId === selected);
+      return valid ? { ...task, selectedToolId: selected } : task;
+    });
+
+    return { tasks: refined, model, used: true };
+  } catch (error) {
+    console.warn('Planner refinement failed; using deterministic route.', error);
+    return { tasks: draft, model: 'deterministic router', used: false };
+  }
+}
+
+function finalizePlan(
+  req: PlanRequest & { budget: number; quantity: number; preference: Preference; ownedTools: string[] },
+  catalog: CatalogSnapshot,
+  tasks: DraftTask[],
+  plannerModel: string,
+  plannerUsed: boolean
+) {
+  const completed = tasks.map((task) => {
+    const selected = task.options.find((o) => o.toolId === task.selectedToolId) || task.options[0];
+    const item = itemById(catalog, selected.toolId);
+    const alternatives = task.options
+      .filter((o) => o.toolId !== selected.toolId)
+      .map((option) => {
+        const alt = itemById(catalog, option.toolId);
+        return {
+          toolId: option.toolId,
+          name: alt?.name || option.label,
+          provider: alt?.provider || '',
+          cost: option.cost,
+          costLabel: option.costLabel,
+          basis: option.costBasis
+        };
+      });
+
+    const reasonParts = [
+      selected.costBasis === 'owned' ? 'uses a tool you already pay for' : '',
+      selected.costBasis === 'free' ? 'keeps incremental spend at zero' : '',
+      selected.costBasis === 'verified' && req.preference !== 'quality' ? 'fits the cost target with verified pricing' : '',
+      req.preference === 'quality' ? 'prioritizes output quality within the available route' : ''
+    ].filter(Boolean);
+
+    return {
+      id: task.id,
+      stage: task.stage,
+      title: task.title,
+      purpose: task.purpose,
+      expectedOutput: task.expectedOutput,
+      toolId: selected.toolId,
+      toolName: item?.name || selected.label,
+      provider: item?.provider || 'Unknown provider',
+      cost: selected.cost,
+      costLabel: selected.costLabel,
+      costBasis: selected.costBasis,
+      reason: reasonParts[0] || item?.quality?.note || 'Best fit from the current candidate set.',
+      quality: item?.quality || { status: 'not-tested', note: 'Not tested' },
+      sourceUrl: item?.sourceUrl,
+      lastVerified: item?.lastVerified,
+      alternatives,
+      agentInstruction: `${task.stage}: ${task.title}. Use ${item?.name || selected.label}. Goal: ${req.goal}. Deliver: ${task.expectedOutput}. Do not add paid tools unless the user approves a budget change.`
+    };
+  });
+
+  const knownCost = Number(
+    completed.reduce((sum, task) => sum + (typeof task.cost === 'number' ? task.cost : 0), 0).toFixed(2)
+  );
+  const unpricedCount = completed.filter((task) => task.cost === null).length;
+  const withinBudget = knownCost <= req.budget;
+  const kind = classifyGoal(req.goal);
+
+  const sources = Array.from(
+    new Map(
+      completed
+        .filter((task) => task.sourceUrl)
+        .map((task) => [task.sourceUrl, { name: `${task.toolName} pricing/source`, url: task.sourceUrl, checked: task.lastVerified }])
+    ).values()
+  );
+
+  const handoff = [
+    `# HANDOFF — ${req.projectName || req.goal.slice(0, 72)}`,
+    `Goal: ${req.goal}`,
+    `Budget ceiling: $${req.budget.toFixed(2)}`,
+    `Preference: ${req.preference}`,
+    `Existing tools: ${req.ownedTools.length ? req.ownedTools.join(', ') : 'None provided'}`,
+    '',
+    '## Route',
+    ...completed.map(
+      (task, index) =>
+        `${index + 1}. ${task.stage} — ${task.toolName}: ${task.expectedOutput}. ${task.agentInstruction}`
+    ),
+    '',
+    '## Guardrails',
+    '- Treat catalog prices as source data, not model memory.',
+    '- Re-check any item marked estimated or unknown before spending.',
+    '- Do not introduce another paid subscription unless it materially improves the requested result and stays within budget.',
+    '- Keep outputs concise and preserve the requested deliverables.'
+  ].join('\n');
+
+  return {
+    id: `plan-${Date.now()}`,
+    projectName: req.projectName || req.goal.slice(0, 72),
+    goal: req.goal,
+    kind,
+    quantity: req.quantity,
+    budget: req.budget,
+    preference: req.preference,
+    ownedTools: req.ownedTools,
+    summary: withinBudget
+      ? `A ${req.preference === 'quality' ? 'quality-first' : req.preference === 'free' ? 'lowest-cost' : 'best-value'} route that keeps known spend within your $${req.budget.toFixed(2)} budget.`
+      : `The current known-cost route is above budget. Use the lower-cost alternatives before starting paid generation.`,
+    knownCost,
+    budgetRemaining: Number((req.budget - knownCost).toFixed(2)),
+    unpricedCount,
+    costNote:
+      unpricedCount > 0
+        ? `${unpricedCount} step(s) use credit/subscription pricing that must be verified before purchase.`
+        : 'All selected paid steps have a stored price in the current catalog snapshot.',
+    priceCheckedAt: catalog.generatedAt,
+    tasks: completed,
+    sources,
+    handoff,
+    planner: {
+      model: plannerModel,
+      usedModelCall: plannerUsed,
+      rule: 'LLM selects only from verified candidates; prices come from the catalog.'
+    }
+  };
+}
+
+app.get('/api/health', (_req: Request, res: Response) => {
+  let catalog: CatalogSnapshot | null = null;
+  try {
+    catalog = loadCatalog();
+  } catch {
+    // handled in payload
+  }
   res.json({
-    status: 'ok',
-    engine: 'GLM-5.3 Fast Frontier Optimizer (Gemini Flash Accelerated)',
-    hasApiKey: Boolean(process.env.GEMINI_API_KEY),
+    status: catalog ? 'ok' : 'degraded',
+    catalogVersion: catalog?.version || null,
+    catalogGeneratedAt: catalog?.generatedAt || null,
+    plannerConfigured: Boolean(
+      (process.env.PLANNER_API_KEY && process.env.PLANNER_BASE_URL && process.env.PLANNER_MODEL) ||
+        process.env.DEEPSEEK_API_KEY
+    ),
     timestamp: new Date().toISOString()
   });
 });
 
-// Community API
-app.get('/api/community', (req: Request, res: Response) => {
-  // Compute aggregate statistics
-  const totalProjects = communityStore.length;
-  const totalBudget = communityStore.reduce((sum, item) => sum + item.budget, 0);
-  const totalPlannedCost = communityStore.reduce((sum, item) => sum + item.totalCost, 0);
-  const avgCostSavings = totalBudget > 0 ? Math.round(((totalBudget - totalPlannedCost) / totalBudget) * 100) : 48;
-
-  // Model frequency count
-  const modelFrequency: Record<string, number> = {};
-  communityStore.forEach((p) => {
-    p.modelsUsed.forEach((m) => {
-      modelFrequency[m.modelName] = (modelFrequency[m.modelName] || 0) + 1;
-    });
-  });
-
-  const topModels = Object.entries(modelFrequency)
-    .map(([name, count]) => ({ name, count }))
-    .sort((a, b) => b.count - a.count);
-
-  res.json({
-    submissions: communityStore,
-    stats: {
-      totalProjects,
-      avgBudget: Number((totalBudget / Math.max(1, totalProjects)).toFixed(2)),
-      avgPlannedCost: Number((totalPlannedCost / Math.max(1, totalProjects)).toFixed(2)),
-      avgCostSavings,
-      topModels
-    }
-  });
-});
-
-app.post('/api/community', (req: Request, res: Response) => {
-  const { projectName, category, description, budget, totalCost, strategy, modelsUsed } = req.body;
-  if (!projectName) {
-    return res.status(400).json({ error: 'Project name is required' });
-  }
-
-  const newEntry: CommunitySubmission = {
-    id: `comm-${Date.now()}`,
-    projectName,
-    category: category || 'Custom Application',
-    description: description || 'Autonomous workflow with dynamic model routing.',
-    budget: Number(budget) || 10,
-    totalCost: Number(totalCost) || 0,
-    strategy: strategy || 'mixed',
-    modelsUsed: modelsUsed || [],
-    timestamp: 'Just now',
-    views: 1,
-    likes: 1
-  };
-
-  communityStore.unshift(newEntry);
-  if (communityStore.length > 50) {
-    communityStore = communityStore.slice(0, 50);
-  }
-
-  res.json({ success: true, entry: newEntry });
-});
-
-// Fallback roadmap synthesizer if AI is offline or key not provided
-function generateFallbackPlan(
-  projectName: string,
-  projectDescription: string,
-  budget: number,
-  strategy: ModelStrategy
-): ProjectPlan {
-  const desc = projectDescription.toLowerCase();
-
-  // Detect likely project characteristics
-  const isMarketing = desc.includes('campaign') || desc.includes('video') || desc.includes('image') || desc.includes('market');
-  const isDashboard = desc.includes('dashboard') || desc.includes('analytics') || desc.includes('metric');
-  const isSupport = desc.includes('support') || desc.includes('customer') || desc.includes('chat') || desc.includes('agent');
-  const isAutomation = desc.includes('invoice') || desc.includes('extract') || desc.includes('parse') || desc.includes('automation');
-
-  let rawTasks: { title: string; desc: string; cat: TaskPlan['category']; inTok: number; outTok: number; deliverables: string[] }[] = [];
-
-  if (isMarketing) {
-    rawTasks = [
-      {
-        title: 'User Authentication & Multi-Tenant Session Vault',
-        desc: 'OAuth2 login, encrypted API key vault, team organization access control and rate-limiting.',
-        cat: 'auth',
-        inTok: 120_000,
-        outTok: 35_000,
-        deliverables: ['JWT Token Guard', 'RBAC Middleware', 'Session Storage']
-      },
-      {
-        title: 'Prompt Expansion & High-Res Image Generation',
-        desc: 'Transform raw concept into 4 prompt variants and generate high-fidelity advertising creatives.',
-        cat: 'multimodal',
-        inTok: 380_000,
-        outTok: 160_000,
-        deliverables: ['Style Preset Engine', 'Negative Prompt Tuner', 'Image Upscaler Hook']
-      },
-      {
-        title: 'Automated Short-Form Video Clip Synthesis',
-        desc: 'Assemble storyboard frames, audio narration script, and transition sequence for social media.',
-        cat: 'video',
-        inTok: 450_000,
-        outTok: 220_000,
-        deliverables: ['Storyboard JSON', 'Audio Script', 'Video Stitching Pipeline']
-      },
-      {
-        title: 'Campaign Analytics & Real-Time Performance UI',
-        desc: 'Interactive visual metrics tracking impressions, click-through rates, and model spending balance.',
-        cat: 'dashboard',
-        inTok: 180_000,
-        outTok: 70_000,
-        deliverables: ['Live Spend Tracker', 'CTR Bar Chart', 'Export CSV Report']
-      },
-      {
-        title: 'Milestone Completion & Webhook Notifications',
-        desc: 'Format transactional summary email, send Slack/Discord webhook alerts to marketing managers.',
-        cat: 'messaging',
-        inTok: 95_000,
-        outTok: 40_000,
-        deliverables: ['HTML Email Template', 'Webhook Retry Logic', 'Delivery Log']
-      }
-    ];
-  } else if (isDashboard) {
-    rawTasks = [
-      {
-        title: 'Telemetry Ingestion & Schema Normalization',
-        desc: 'Validate inbound JSON streams, deduplicate event timestamps, and populate normalized data lake.',
-        cat: 'database',
-        inTok: 250_000,
-        outTok: 60_000,
-        deliverables: ['Zod Schema Validator', 'Batch Ingestion Queue', 'Index Optimizer']
-      },
-      {
-        title: 'Natural Language to SQL/Query Compiler',
-        desc: 'Allow users to ask ad-hoc questions ("show top 5 drop-offs this week") and compile safe SQL.',
-        cat: 'core_logic',
-        inTok: 320_000,
-        outTok: 110_000,
-        deliverables: ['SQL AST Guard', 'Query Cost Estimator', 'Schema Reflection']
-      },
-      {
-        title: 'Interactive Dashboard Visualization Engine',
-        desc: 'Dynamic rendering of time-series line graphs, conversion funnels, and drill-down filters.',
-        cat: 'dashboard',
-        inTok: 200_000,
-        outTok: 90_000,
-        deliverables: ['Responsive SVG Stage', 'Date-range Picker', 'Filter State Sync']
-      },
-      {
-        title: 'Anomaly Detection & Threshold Alert Delivery',
-        desc: 'Run periodic statistical checks for sudden metric spikes and dispatch email/SMS alerts.',
-        cat: 'messaging',
-        inTok: 150_000,
-        outTok: 50_000,
-        deliverables: ['Z-score Detector', 'Notification Queue', 'Digest Formatter']
-      }
-    ];
-  } else if (isSupport) {
-    rawTasks = [
-      {
-        title: 'Customer Identity & Session Verification',
-        desc: 'Authenticate user account status, fetch prior support tickets, and configure session security.',
-        cat: 'auth',
-        inTok: 140_000,
-        outTok: 45_000,
-        deliverables: ['Customer Context Fetcher', 'CRM ID Matcher', 'CSRF Protection']
-      },
-      {
-        title: 'Knowledge Base Semantic Search (RAG)',
-        desc: 'Query vector embeddings for company policy, FAQs, and API documentation with reranking.',
-        cat: 'core_logic',
-        inTok: 480_000,
-        outTok: 190_000,
-        deliverables: ['Cosine Similarity Matcher', 'Context Window Packing', 'Hallucination Filter']
-      },
-      {
-        title: 'Multi-turn Empathy & Frustration Detector',
-        desc: 'Analyze conversation tone in real time; trigger escalation if frustration exceeds 0.7.',
-        cat: 'core_logic',
-        inTok: 280_000,
-        outTok: 80_000,
-        deliverables: ['Sentiment Classifier', 'Human Handoff Hook', 'Tone Guardrail']
-      },
-      {
-        title: 'CRM Ticket Resolution & Email Summary',
-        desc: 'Close resolved Zendesk/HubSpot tickets and send a formatted transcript with action items to customer.',
-        cat: 'messaging',
-        inTok: 160_000,
-        outTok: 65_000,
-        deliverables: ['Zendesk API Sync', 'Transcript PDF/Email', 'CSAT Survey Link']
-      }
-    ];
-  } else {
-    // Standard automation / multi-step workflow
-    rawTasks = [
-      {
-        title: 'Workflow Authentication & Access Governance',
-        desc: 'Secure service account tokens, manage team permissions, and enforce per-user rate limits.',
-        cat: 'auth',
-        inTok: 120_000,
-        outTok: 40_000,
-        deliverables: ['API Key Validator', 'Rate Limiter (Redis)', 'Audit Log']
-      },
-      {
-        title: 'Input Ingestion, OCR & Multimodal Parsing',
-        desc: 'Ingest raw documents, unstructured payloads or user prompts, converting them to typed JSON.',
-        cat: 'multimodal',
-        inTok: 410_000,
-        outTok: 130_000,
-        deliverables: ['Structured JSON Extractor', 'Format Normalizer', 'Error Boundary']
-      },
-      {
-        title: 'Core Business Logic & Reasoning Engine',
-        desc: 'Execute calculations, cross-reference external database records, and validate integrity rules.',
-        cat: 'core_logic',
-        inTok: 350_000,
-        outTok: 140_000,
-        deliverables: ['Deterministic Engine', 'Rule Evaluation Loop', 'Audit Trail']
-      },
-      {
-        title: 'Management Dashboard & Execution Telemetry',
-        desc: 'Visual interface showing pipeline status, throughput metrics, and real-time processing logs.',
-        cat: 'dashboard',
-        inTok: 190_000,
-        outTok: 75_000,
-        deliverables: ['Telemetry Feed', 'Task Status Badge', 'Execution Re-run UI']
-      },
-      {
-        title: 'Outbound Notification & Webhook Dispatcher',
-        desc: 'Broadcast webhook payloads and deliver completion notification emails to stakeholders.',
-        cat: 'messaging',
-        inTok: 110_000,
-        outTok: 45_000,
-        deliverables: ['Webhook Dispatcher', 'Email Notifier', 'Exponential Backoff']
-      }
-    ];
-  }
-
-  // Build task options
-  const tasks: TaskPlan[] = rawTasks.map((rt, idx) => {
-    // Generate options for this task based on catalog
-    const modelOptions: TaskModelCost[] = AI_MODELS_CATALOG.map((m) => {
-      const cost = calculateCost(m, rt.inTok, rt.outTok);
-      let highlights = m.bestFor;
-      if (m.id === 'deepseek-v3') highlights = 'Ultra-high cost efficiency with top-tier reasoning.';
-      if (m.id === 'kimi-moonshot-k1.5') highlights = 'Superior context window retention for document tasks.';
-      if (m.id === 'glm-5.3-frontier') highlights = 'Cheap frontier model with balanced Chinese & English reasoning.';
-      if (m.id === 'gemini-2.5-flash') highlights = 'Sub-second speed with 1M token capability.';
-
-      return {
-        modelId: m.id,
-        modelName: m.name,
-        provider: m.provider,
-        tier: m.tier,
-        projectedCost: cost,
-        inputTokens: rt.inTok,
-        outputTokens: rt.outTok,
-        totalTokens: rt.inTok + rt.outTok,
-        latencyMs: m.avgLatencyMs,
-        tokensPerSec: m.tokensPerSec,
-        reliabilityPercent: m.reliabilityPercent,
-        highlights
-      };
-    });
-
-    // Pick default model according to user's strategy
-    let defaultModelId = 'deepseek-v3';
-    if (strategy === 'free') {
-      defaultModelId = 'gemini-flash-free';
-    } else if (strategy === 'local') {
-      defaultModelId = 'ollama-llama-3.3-70b';
-    } else if (strategy === 'frontier') {
-      defaultModelId = 'glm-5.3-frontier';
-    } else {
-      // Mixed
-      if (rt.cat === 'auth' || rt.cat === 'messaging') defaultModelId = 'deepseek-v3';
-      else if (rt.cat === 'multimodal') defaultModelId = 'gemini-2.5-flash';
-      else if (rt.cat === 'video') defaultModelId = 'glm-5.3-frontier';
-      else defaultModelId = 'deepseek-v3';
-    }
-
-    return {
-      id: `task-${idx + 1}`,
-      taskNumber: idx + 1,
-      title: rt.title,
-      description: rt.desc,
-      category: rt.cat,
-      estimatedInputTokens: rt.inTok,
-      estimatedOutputTokens: rt.outTok,
-      selectedModelId: defaultModelId,
-      availableModels: modelOptions,
-      deliverables: rt.deliverables
-    };
-  });
-
-  const totalCost = Number(
-    tasks
-      .reduce((sum, t) => {
-        const sel = t.availableModels.find((m) => m.modelId === t.selectedModelId);
-        return sum + (sel ? sel.projectedCost : 0);
-      }, 0)
-      .toFixed(2)
-  );
-
-  const totalTokens = tasks.reduce((sum, t) => sum + t.estimatedInputTokens + t.estimatedOutputTokens, 0);
-  const budgetUtilizationPercent = budget > 0 ? Math.min(100, Math.round((totalCost / budget) * 100)) : 100;
-  const feasibilityScore = totalCost <= budget ? 95 : Math.max(30, Math.round(95 - ((totalCost - budget) / budget) * 50));
-
-  const specDocMarkdown = `# Technical Specification & Resource Allocation Plan
-**Project Name:** ${projectName}
-**Generated By:** GLM-5.3 Fast Frontier Planner Engine
-**Allocated Budget:** $${budget.toFixed(2)} USD
-**Projected Total Spend:** $${totalCost.toFixed(2)} USD (${budgetUtilizationPercent}% utilization)
-**Feasibility Rating:** ${feasibilityScore}/100
-
----
-
-## 1. Executive Summary
-This architecture roadmap defines the implementation schedule, decomposed tasks, token consumption projections, and model allocations for **${projectName}**. Using the chosen **${strategy.toUpperCase()}** strategy, each micro-task has been mapped to an optimal LLM provider balancing cost, latency SLA, and reliability.
-
-## 2. Decomposed Task Matrix & Model Allocation
-${tasks
-  .map((t) => {
-    const chosen = t.availableModels.find((m) => m.modelId === t.selectedModelId);
-    return `### Task ${t.taskNumber}: ${t.title}
-- **Category:** \`${t.category}\`
-- **Primary Model:** **${chosen?.modelName || 'DeepSeek-V3'}** (${chosen?.provider})
-- **Projected Cost:** **$${chosen?.projectedCost.toFixed(3) || '0.000'} USD** (~${((t.estimatedInputTokens + t.estimatedOutputTokens) / 1000).toFixed(0)}k tokens)
-- **Latency & Reliability:** ${chosen?.latencyMs}ms | ${chosen?.reliabilityPercent}% SLA
-- **Key Deliverables:** ${t.deliverables.join(', ')}
-`;
-  })
-  .join('\n')}
-
-## 3. Recommended Basic & Advanced Platform Features (Architectural Discussion)
-To safeguard budget, reduce latency, and ensure fault tolerance in production, the following platform capabilities are formally recommended:
-
-1. **Semantic Prompt Caching (30-65% Cost Savings):**
-   - Cache repetitive system instructions, prompt templates, and few-shot schemas using server-side KV memory (Redis or Cloudflare KV).
-   - Expected token reduction: ~180k tokens/day.
-
-2. **Model Cascade & Circuit Breaker Pattern:**
-   - **Primary:** DeepSeek-V3 / Kimi for high-volume task resolution.
-   - **Secondary Fallback:** Gemini 2.5 Flash if upstream latency exceeds 800ms or 429 rate limit is reached.
-   - **Offline / Local Fallback:** Ollama Llama 3.3 for zero-downtime essential routing.
-
-3. **Multi-Tenant Token Quota & Rate Guard:**
-   - Enforce hard budget limits per API key/user to prevent runaway generation loops or budget exhaustion.
-   - Real-time spend alert triggers when 80% and 95% of target budget is consumed.
-
-4. **Time-To-First-Token (TTFT) Streaming:**
-   - Stream responses via Server-Sent Events (SSE) to deliver perceived latency of < 250ms for front-end users.
-
-5. **Telemetry & Community Observability:**
-   - Log latency, cost-per-call, token in/out ratios, and reliability benchmarks into an internal metrics store for continuous cost optimization.
-`;
-
-  const handoffSummary = `# PROJECT HANDOFF: ${projectName}
-Target Budget: $${budget.toFixed(2)} USD | Strategy: ${strategy.toUpperCase()}
-Projected Total Spend: $${totalCost.toFixed(2)} USD
-
-## Key Points & Task Allocation:
-${tasks.map((t) => {
-  const chosen = t.availableModels.find((m) => m.modelId === t.selectedModelId);
-  return `- Task ${t.taskNumber} [${t.title}]: ${chosen?.modelName || 'DeepSeek-V3'} ($${chosen?.projectedCost.toFixed(3)} USD, ${chosen?.latencyMs}ms, ${chosen?.reliabilityPercent}% SLA)`;
-}).join('\n')}
-
-## Key Deliverables:
-${tasks.flatMap((t) => t.deliverables.map((d) => `- ${d} (${t.title})`)).join('\n')}
-`;
-
-  return {
-    id: `plan-${Date.now()}`,
-    projectName,
-    projectDescription,
-    budget,
-    preferredStrategy: strategy,
-    totalCost,
-    totalTokens,
-    budgetUtilizationPercent,
-    feasibilityScore,
-    plannerModelUsed: 'Project Architecture Engine',
-    phases: [
-      {
-        phase: 'Phase 1: Foundation & Security Setup',
-        duration: 'Days 1-3',
-        tasks: [tasks[0]?.title || 'Auth Setup', 'Provider API Key Vault & Mock Harness']
-      },
-      {
-        phase: 'Phase 2: Core Task Synthesis & Media Engines',
-        duration: 'Days 4-8',
-        tasks: tasks.slice(1, 3).map((t) => t.title)
-      },
-      {
-        phase: 'Phase 3: Real-Time UI, Dashboards & Telemetry',
-        duration: 'Days 9-12',
-        tasks: tasks.slice(3).map((t) => t.title)
-      }
-    ],
-    tasks,
-    handoffSummary,
-    specDocMarkdown,
-    createdAt: new Date().toISOString()
-  };
-}
-
-// Main Planning Endpoint
-app.post('/api/plan', async (req: Request, res: Response) => {
-  const { projectName, projectDescription, budget, preferredStrategy } = req.body;
-
-  if (!projectName || !projectDescription) {
-    return res.status(400).json({ error: 'Project name and description are required.' });
-  }
-
-  const numBudget = Number(budget) || 10;
-  const strategy: ModelStrategy = ['free', 'mixed', 'frontier', 'local'].includes(preferredStrategy)
-    ? preferredStrategy
-    : 'mixed';
-
-  const gemini = getGeminiClient();
-
-  if (!gemini) {
-    console.log('No GEMINI_API_KEY found. Utilizing deterministic low-latency GLM-5.3 planner generator.');
-    const plan = generateFallbackPlan(projectName, projectDescription, numBudget, strategy);
-    return res.json({ plan, source: 'fallback_engine' });
-  }
-
+app.get('/api/catalog', (_req: Request, res: Response) => {
   try {
-    const prompt = `You are GLM-5.3, a fast frontier AI architecture planning model.
-Decompose the following user project into 4 to 5 discrete technical engineering tasks.
-For each task:
-- Assign an appropriate category from: 'auth', 'multimodal', 'video', 'dashboard', 'messaging', 'core_logic', 'database'.
-- Estimate realistic input tokens (e.g., 50000 - 450000) and output tokens (e.g., 20000 - 180000).
-- List 3 key deliverables.
-
-Project Name: ${projectName}
-Project Description: ${projectDescription}
-Budget: $${numBudget} USD
-Preferred Strategy: ${strategy} (Options: free, mixed, frontier, local)
-
-Return ONLY valid JSON matching this schema:
-{
-  "tasks": [
-    {
-      "taskNumber": 1,
-      "title": "Task title",
-      "description": "Task description",
-      "category": "auth",
-      "estimatedInputTokens": 120000,
-      "estimatedOutputTokens": 35000,
-      "deliverables": ["Deliverable 1", "Deliverable 2", "Deliverable 3"]
-    }
-  ],
-  "phases": [
-    {
-      "phase": "Phase 1: Architecture & Foundation",
-      "duration": "Days 1-3",
-      "tasks": ["Task 1 title"]
-    }
-  ]
-}`;
-
-    const response = await gemini.models.generateContent({
-      model: 'gemini-3.8-flash',
-      contents: prompt,
-      config: {
-        responseMimeType: 'application/json'
-      }
-    });
-
-    const rawText = response.text || '';
-    const parsed = JSON.parse(rawText);
-
-    // Build the tasks with full model catalog pricing
-    const tasks: TaskPlan[] = (parsed.tasks || []).map((pt: any, idx: number) => {
-      const inTok = Number(pt.estimatedInputTokens) || 120_000;
-      const outTok = Number(pt.estimatedOutputTokens) || 40_000;
-
-      const modelOptions: TaskModelCost[] = AI_MODELS_CATALOG.map((m) => {
-        const cost = calculateCost(m, inTok, outTok);
-        let highlights = m.bestFor;
-        if (m.id === 'deepseek-v3') highlights = 'Ultra-high cost efficiency with top-tier reasoning.';
-        if (m.id === 'kimi-moonshot-k1.5') highlights = 'Deep contextual retention for document tasks.';
-        if (m.id === 'glm-5.3-frontier') highlights = 'Cheap frontier model with balanced Chinese & English reasoning.';
-        if (m.id === 'gemini-2.5-flash') highlights = 'Sub-second speed with 1M token capability.';
-
-        return {
-          modelId: m.id,
-          modelName: m.name,
-          provider: m.provider,
-          tier: m.tier,
-          projectedCost: cost,
-          inputTokens: inTok,
-          outputTokens: outTok,
-          totalTokens: inTok + outTok,
-          latencyMs: m.avgLatencyMs,
-          tokensPerSec: m.tokensPerSec,
-          reliabilityPercent: m.reliabilityPercent,
-          highlights
-        };
-      });
-
-      // Default model selection based on strategy
-      let defaultModelId = 'deepseek-v3';
-      if (strategy === 'free') defaultModelId = 'gemini-flash-free';
-      else if (strategy === 'local') defaultModelId = 'ollama-llama-3.3-70b';
-      else if (strategy === 'frontier') defaultModelId = 'glm-5.3-frontier';
-      else {
-        if (pt.category === 'auth' || pt.category === 'messaging') defaultModelId = 'deepseek-v3';
-        else if (pt.category === 'multimodal') defaultModelId = 'gemini-2.5-flash';
-        else if (pt.category === 'video') defaultModelId = 'glm-5.3-frontier';
-        else defaultModelId = 'deepseek-v3';
-      }
-
-      return {
-        id: `task-${idx + 1}`,
-        taskNumber: idx + 1,
-        title: pt.title || `Task ${idx + 1}`,
-        description: pt.description || '',
-        category: pt.category || 'core_logic',
-        estimatedInputTokens: inTok,
-        estimatedOutputTokens: outTok,
-        selectedModelId: defaultModelId,
-        availableModels: modelOptions,
-        deliverables: Array.isArray(pt.deliverables) ? pt.deliverables : ['Architecture spec', 'Integration hook']
-      };
-    });
-
-    const totalCost = Number(
-      tasks
-        .reduce((sum, t) => {
-          const sel = t.availableModels.find((m) => m.modelId === t.selectedModelId);
-          return sum + (sel ? sel.projectedCost : 0);
-        }, 0)
-        .toFixed(2)
-    );
-
-    const totalTokens = tasks.reduce((sum, t) => sum + t.estimatedInputTokens + t.estimatedOutputTokens, 0);
-    const budgetUtilizationPercent = numBudget > 0 ? Math.min(100, Math.round((totalCost / numBudget) * 100)) : 100;
-    const feasibilityScore = totalCost <= numBudget ? 96 : Math.max(35, Math.round(95 - ((totalCost - numBudget) / numBudget) * 50));
-
-    const specDocMarkdown = `# Technical Specification & Resource Allocation Plan
-**Project Name:** ${projectName}
-**Generated By:** GLM-5.3 Fast Frontier Planner Engine
-**Allocated Budget:** $${numBudget.toFixed(2)} USD
-**Projected Total Spend:** $${totalCost.toFixed(2)} USD (${budgetUtilizationPercent}% utilization)
-**Feasibility Rating:** ${feasibilityScore}/100
-
----
-
-## 1. Executive Summary
-This architecture roadmap defines the implementation schedule, decomposed tasks, token consumption projections, and model allocations for **${projectName}**. Using the chosen **${strategy.toUpperCase()}** strategy, each micro-task has been mapped to an optimal LLM provider balancing cost, latency SLA, and reliability.
-
-## 2. Decomposed Task Matrix & Model Allocation
-${tasks
-  .map((t) => {
-    const chosen = t.availableModels.find((m) => m.modelId === t.selectedModelId);
-    return `### Task ${t.taskNumber}: ${t.title}
-- **Category:** \`${t.category}\`
-- **Primary Model:** **${chosen?.modelName || 'DeepSeek-V3'}** (${chosen?.provider})
-- **Projected Cost:** **$${chosen?.projectedCost.toFixed(3) || '0.000'} USD** (~${((t.estimatedInputTokens + t.estimatedOutputTokens) / 1000).toFixed(0)}k tokens)
-- **Latency & Reliability:** ${chosen?.latencyMs}ms | ${chosen?.reliabilityPercent}% SLA
-- **Key Deliverables:** ${t.deliverables.join(', ')}
-`;
-  })
-  .join('\n')}
-
-## 3. Recommended Basic & Advanced Platform Features (Architectural Discussion)
-To safeguard budget, reduce latency, and ensure fault tolerance in production, the following platform capabilities are formally recommended:
-
-1. **Semantic Prompt Caching (30-65% Cost Savings):**
-   - Cache repetitive system instructions, prompt templates, and few-shot schemas using server-side KV memory (Redis or Cloudflare KV).
-   - Expected token reduction: ~180k tokens/day.
-
-2. **Model Cascade & Circuit Breaker Pattern:**
-   - **Primary:** DeepSeek-V3 / Kimi for high-volume task resolution.
-   - **Secondary Fallback:** Gemini 2.5 Flash if upstream latency exceeds 800ms or 429 rate limit is reached.
-   - **Offline / Local Fallback:** Ollama Llama 3.3 for zero-downtime essential routing.
-
-3. **Multi-Tenant Token Quota & Rate Guard:**
-   - Enforce hard budget limits per API key/user to prevent runaway generation loops or budget exhaustion.
-   - Real-time spend alert triggers when 80% and 95% of target budget is consumed.
-
-4. **Time-To-First-Token (TTFT) Streaming:**
-   - Stream responses via Server-Sent Events (SSE) to deliver perceived latency of < 250ms for front-end users.
-
-5. **Telemetry & Community Observability:**
-   - Log latency, cost-per-call, token in/out ratios, and reliability benchmarks into an internal metrics store for continuous cost optimization.
-`;
-
-    const handoffSummary = `# PROJECT HANDOFF: ${projectName}
-Target Budget: $${numBudget.toFixed(2)} USD | Strategy: ${strategy.toUpperCase()}
-Projected Total Spend: $${totalCost.toFixed(2)} USD
-
-## Key Points & Task Allocation:
-${tasks.map((t) => {
-  const chosen = t.availableModels.find((m) => m.modelId === t.selectedModelId);
-  return `- Task ${t.taskNumber} [${t.title}]: ${chosen?.modelName || 'DeepSeek-V3'} ($${chosen?.projectedCost.toFixed(3)} USD, ${chosen?.latencyMs}ms, ${chosen?.reliabilityPercent}% SLA)`;
-}).join('\n')}
-
-## Key Deliverables:
-${tasks.flatMap((t) => t.deliverables.map((d) => `- ${d} (${t.title})`)).join('\n')}
-`;
-
-    const plan: ProjectPlan = {
-      id: `plan-${Date.now()}`,
-      projectName,
-      projectDescription,
-      budget: numBudget,
-      preferredStrategy: strategy,
-      totalCost,
-      totalTokens,
-      budgetUtilizationPercent,
-      feasibilityScore,
-      plannerModelUsed: 'Project Architecture Engine',
-      phases: parsed.phases || [
-        {
-          phase: 'Phase 1: Foundation & Security',
-          duration: 'Days 1-3',
-          tasks: [tasks[0]?.title || 'Setup']
-        },
-        {
-          phase: 'Phase 2: Core Task Synthesis',
-          duration: 'Days 4-8',
-          tasks: tasks.slice(1, 3).map((t) => t.title)
-        },
-        {
-          phase: 'Phase 3: Production Dashboards & Telemetry',
-          duration: 'Days 9-12',
-          tasks: tasks.slice(3).map((t) => t.title)
-        }
-      ],
-      tasks,
-      handoffSummary,
-      specDocMarkdown,
-      createdAt: new Date().toISOString()
-    };
-
-    return res.json({ plan, source: 'gemini_glm_engine' });
-  } catch (err: any) {
-    console.error('Error generating AI plan:', err);
-    // Graceful fallback to guarantee zero user interruption
-    const plan = generateFallbackPlan(projectName, projectDescription, numBudget, strategy);
-    return res.json({ plan, source: 'fallback_engine', note: 'AI provider error handled gracefully.' });
+    res.json(loadCatalog());
+  } catch (error: any) {
+    res.status(500).json({ error: error.message || 'Catalog unavailable' });
   }
 });
 
-// Vite middleware & Static serving
+app.post('/api/plan-v2', async (req: Request, res: Response) => {
+  try {
+    const body = req.body as PlanRequest;
+    if (!body?.goal || typeof body.goal !== 'string' || body.goal.trim().length < 3) {
+      return res.status(400).json({ error: 'Describe what you want to make.' });
+    }
+
+    const normalized = {
+      ...body,
+      goal: body.goal.trim(),
+      budget: Math.max(0, Number(body.budget ?? 20)),
+      quantity: Math.max(1, Number(body.quantity ?? 1)),
+      preference: (['free', 'value', 'quality'].includes(body.preference || '') ? body.preference : 'value') as Preference,
+      ownedTools: Array.isArray(body.ownedTools) ? body.ownedTools.filter(Boolean).slice(0, 20) : []
+    };
+
+    const catalog = loadCatalog();
+    const draft = buildDraft(normalized, catalog);
+    const refined = await maybeRefineWithPlanner(normalized, catalog, draft);
+    const plan = finalizePlan(normalized, catalog, refined.tasks, refined.model, refined.used);
+
+    return res.json({ plan });
+  } catch (error: any) {
+    console.error(error);
+    return res.status(500).json({ error: error.message || 'Could not build plan' });
+  }
+});
+
 async function startServer() {
   if (process.env.NODE_ENV !== 'production') {
-    const vite = await createViteServer({
-      server: { middlewareMode: true },
-      appType: 'spa'
-    });
+    const vite = await createViteServer({ server: { middlewareMode: true }, appType: 'spa' });
     app.use(vite.middlewares);
   } else {
     const distPath = path.join(process.cwd(), 'dist');
     app.use(express.static(distPath));
-    app.get('*', (req: Request, res: Response) => {
+    app.get('*', (_req: Request, res: Response) => {
       res.sendFile(path.join(distPath, 'index.html'));
     });
   }
 
   app.listen(PORT, '0.0.0.0', () => {
-    console.log(`Server running on http://localhost:${PORT}`);
+    console.log(`Handoff running on http://localhost:${PORT}`);
   });
 }
 
