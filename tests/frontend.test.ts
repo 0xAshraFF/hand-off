@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import fs from "node:fs";
+import { catalogFixture } from "./catalog-fixture";
 import {
   filterOutcomes,
   emptyFilters,
@@ -8,9 +8,7 @@ import {
   type ProjectPlan,
 } from "../src/frontend";
 import { normalizeRequest, buildDraft, finalizePlan } from "../lib/planner";
-const catalog = JSON.parse(
-  fs.readFileSync("data/catalog.snapshot.json", "utf8"),
-);
+const catalog = catalogFixture();
 const plan = () => {
   const r = normalizeRequest({
     goal: "Create 20 product ad images",
@@ -93,7 +91,7 @@ test("local and API discovery verify every step, not one matching catalog tool",
   const restricted = structuredClone(catalog);
   restricted.items.find(
     (i: { id: string }) => i.id === p.tasks.at(-1)!.toolId,
-  )!.access.api = false;
+  )!.access!.api = false;
   assert.equal(
     filterOutcomes({ ...emptyFilters, local: true }, restricted, {
       "shop-ads": p,

@@ -165,6 +165,18 @@ test("atomic refresh refuses concurrent catalog replacement", async () => {
 });
 
 test("malformed source health cannot enter the runtime catalog", () => {
+  for (const mutate of [
+    (x: CatalogSnapshot) =>
+      ((x as unknown as { priceHistory: unknown }).priceHistory = {}),
+    (x: CatalogSnapshot) => (x.policy.volatileMaxAgeHours = "forever"),
+    (x: CatalogSnapshot) =>
+      ((x.items[0].freeTier as unknown as { available: unknown }).available =
+        "yes"),
+  ]) {
+    const bad = catalog();
+    mutate(bad);
+    assert.throws(() => validateCatalog(bad));
+  }
   const c = catalog();
   (c as unknown as { sourceChecks: unknown }).sourceChecks = { ok: false };
   assert.throws(() => validateCatalog(c));
@@ -182,4 +194,45 @@ test("quota observations remain conditional and retain a paid fallback", async (
   assert.match(offer.fallback!, /0.035/);
   assert.equal(offer.eligible, undefined);
   assert.ok(after.offerHistory!.length > (c.offerHistory?.length || 0));
+});
+
+test("an existing quota offer cannot prevent Google and DeepSeek price refreshes", async () => {
+  const c = catalog();
+  c.offers = [
+    {
+      id: "quota",
+      toolId: "qwen-image-2-0",
+      title: "Conditional quota",
+      status: "verified",
+      lastVerified: new Date().toISOString(),
+      sourceUrl: c.items[0].sourceUrl,
+    },
+  ];
+  const now = new Date().toISOString(),
+    after = await refreshSnapshot(
+      c,
+      async (url) =>
+        url.includes("alibabacloud")
+          ? qwen()
+          : url.includes("google")
+            ? google()
+            : url.includes("deepseek")
+              ? deepseek()
+              : "<html>reachable</html>",
+      now,
+    );
+  for (const id of [
+    "qwen-image-2-0",
+    "gemini-3-1-flash-image",
+    "deepseek-flash",
+    "deepseek-v4-pro",
+  ]) {
+    assert.equal(after.items.find((i) => i.id === id)!.lastVerified, now, id);
+    assert.equal(
+      after.sourceChecks!.filter((ch) => ch.itemId === id).at(-1)!
+        .priceVerified,
+      true,
+      id,
+    );
+  }
 });

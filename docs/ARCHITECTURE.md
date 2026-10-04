@@ -18,7 +18,7 @@ API routes:
 - POST `/api/handoff/export`: a Markdown HTTP attachment with a sanitized filename; no stored user content.
 - POST `/api/catalog/refresh`: constant-time bearer-secret validation and one refresh at a time.
 
-Requests are limited to 32 KB. Planning rate limits are per IP per server process. Production serves a portable Vite/esbuild output and its snapshot. Both Ubuntu and Windows CI run frozen installs, typechecking, tests and build. Nightly refresh at 18:15 UTC runs checks before and after refresh, then commits tracked data only; it requires no HTTP admin secret.
+JSON requests are limited to 32 KB; the Markdown form attachment allows 256 KB of percent-encoded text, bounded to 24,000 handoff characters. Planning rate limits are per IP per server process. Production serves a portable Vite/esbuild output and its snapshot. Both Ubuntu and Windows CI run frozen installs, typechecking, tests and build. Nightly refresh at 18:15 UTC runs checks before and after refresh, then commits tracked data only; it requires no HTTP admin secret.
 
 The UI includes project details, working outcome/category/section/style/difficulty/budget/access filters, Ctrl/Cmd+K search with focus trapping and Escape, source/evidence and budget states, session guide checklists, offers, copy/download feedback, and light/dark responsive layouts. Route filters require complete calculated previews. There is no fabricated community count or output-quality badge.
 

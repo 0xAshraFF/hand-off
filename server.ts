@@ -17,7 +17,10 @@ export function createApp() {
   const app = express();
   app.disable("x-powered-by");
   app.use(express.json({ limit: "32kb" }));
-  app.use(express.urlencoded({ extended: false, limit: "32kb" }));
+  app.use(
+    "/api/handoff/export",
+    express.urlencoded({ extended: false, limit: "256kb" }),
+  );
   app.use((_req, _res, next) => {
     _res.setHeader("X-Content-Type-Options", "nosniff");
     _res.setHeader("Referrer-Policy", "strict-origin-when-cross-origin");

@@ -1,6 +1,6 @@
 # Planning evaluation
 
-Catalog snapshot: 2026-10-04T17:08:48.119Z. Deterministic routing, no live model call. Estimates exclude retries; untested output quality is labeled honestly.
+Catalog snapshot: 2026-10-04T17:40:43.859Z. Deterministic routing, no live model call. Estimates exclude retries; untested output quality is labeled honestly.
 
 | Scenario                         | Known subtotal | Status | Route                                                                                                                                              |
 | -------------------------------- | -------------: | ------ | -------------------------------------------------------------------------------------------------------------------------------------------------- |

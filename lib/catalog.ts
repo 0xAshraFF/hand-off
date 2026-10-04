@@ -107,6 +107,18 @@ export function validateCatalog(value: unknown): CatalogSnapshot {
       ))
   )
     throw new Error("Invalid source checks.");
+  for (const name of ["priceHistory", "offerHistory"] as const)
+    if (c[name] !== undefined && !Array.isArray(c[name]))
+      throw new Error("Invalid catalog history.");
+  if (
+    Array.isArray(c.policy) ||
+    (c.policy.volatileMaxAgeHours !== undefined &&
+      (typeof c.policy.volatileMaxAgeHours !== "number" ||
+        !Number.isFinite(c.policy.volatileMaxAgeHours) ||
+        c.policy.volatileMaxAgeHours <= 0 ||
+        c.policy.volatileMaxAgeHours > 168))
+  )
+    throw new Error("Invalid freshness policy.");
   const ids = new Set<string>();
   for (const i of c.items) {
     if (
@@ -158,6 +170,13 @@ export function validateCatalog(value: unknown): CatalogSnapshot {
         (typeof v !== "number" || !Number.isFinite(v) || v < 0)
       )
         throw new Error("Invalid catalog rate.");
+    if (
+      i.freeTier &&
+      (typeof i.freeTier.available !== "boolean" ||
+        (i.freeTier.unconditional !== undefined &&
+          typeof i.freeTier.unconditional !== "boolean"))
+    )
+      throw new Error("Invalid free-tier conditions.");
     if (!Number.isFinite(Date.parse(i.lastVerified)))
       throw new Error("Invalid verification date.");
     if (i.access && Object.values(i.access).some((v) => typeof v !== "boolean"))

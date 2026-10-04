@@ -67,7 +67,11 @@ export async function refreshSnapshot(
           oldTier = structuredClone(item.freeTier);
         validateCatalog({
           ...next,
-          items: [{ ...item, pricing: parsed.pricing }],
+          items: next.items.map((candidate) =>
+            candidate.id === item.id
+              ? { ...item, pricing: parsed.pricing }
+              : candidate,
+          ),
         });
         check.changeDetected =
           JSON.stringify(oldPricing) !== JSON.stringify(parsed.pricing);

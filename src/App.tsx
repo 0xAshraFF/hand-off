@@ -1181,7 +1181,10 @@ function OffersView({
                   </dd>
                   <dt>Check</dt>
                   <dd>
-                    {offer.check?.status || "Status not recorded"} ·{" "}
+                    {offer.check?.status ||
+                      offer.status ||
+                      "Status not recorded"}{" "}
+                    ·{" "}
                     {dateLabel(
                       offer.check?.checkedAt ||
                         offer.checkedAt ||

@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
+import { catalogFixture } from "./catalog-fixture";
 import {
   normalizeRequest,
   classifyGoal,
@@ -14,10 +14,7 @@ import {
   type DraftTask,
 } from "../lib/planner";
 import type { CatalogSnapshot, CatalogItem } from "../lib/catalog";
-const catalog = () =>
-  JSON.parse(
-    readFileSync("data/catalog.snapshot.json", "utf8"),
-  ) as CatalogSnapshot;
+const catalog = catalogFixture;
 const request = (extra: object = {}) =>
   normalizeRequest({
     goal: "Create 20 product images",

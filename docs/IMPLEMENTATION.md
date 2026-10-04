@@ -2,7 +2,7 @@
 
 ## NOW
 
-Final complete-diff review, GitHub PR and CI verification; merge only after passing checks.
+PR #2 is open. Initial Ubuntu/Windows CI passed. Full PR review found an offer-reference validation bug during refresh; fixed with regression coverage. The fix and 58 local tests pass; delivery and latest CI state are recorded on the PR.
 
 ## PARALLEL
 

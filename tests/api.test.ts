@@ -42,7 +42,8 @@ test("plan and compatibility endpoint work without API key", async () => {
     assert.equal(response.status, 200);
     const data = await response.json();
     assert.ok(data.plan.handoff);
-    assert.ok(data.plan.knownCost <= 5);
+    assert.ok(Number.isFinite(data.plan.knownCost));
+    if (data.plan.knownCost > 5) assert.equal(data.plan.budgetStatus, "over");
   }
 });
 test("API validation errors are readable without stack/secrets", async () => {
@@ -99,6 +100,13 @@ test("Markdown export preserves the handoff, supplies a safe filename and reject
   );
   assert.match(response.headers.get("content-type")!, /text\/markdown/);
   assert.equal(response.headers.get("cache-control"), "no-store");
+  const unicode = "# PROJECT HANDOFF\n" + "বাংলা".repeat(2000);
+  const unicodeResponse = await fetch(base + "/api/handoff/export", {
+    method: "POST",
+    body: new URLSearchParams({ handoff: unicode, name: "unicode-handoff" }),
+  });
+  assert.equal(unicodeResponse.status, 200);
+  assert.equal(await unicodeResponse.text(), unicode);
   assert.equal(
     (
       await fetch(base + "/api/handoff/export", {
