@@ -1,12 +1,12 @@
 {
   "version": 1,
-  "generatedAt": "2026-10-08T23:20:23.908Z",
+  "generatedAt": "2026-10-09T22:37:32.931Z",
   "policy": {
     "note": "Catalog facts carry official sources. Quality claims are untested unless a documented evaluation exists. Conditional quotas are never assumed free.",
     "refreshCadence": "nightly",
     "volatileMaxAgeHours": 36,
     "lastRefreshResult": {
-      "checkedAt": "2026-10-08T23:20:23.908Z",
+      "checkedAt": "2026-10-09T22:37:32.931Z",
       "successfulSources": 15,
       "verifiedPrices": 4,
       "failedSources": 2
@@ -50,7 +50,7 @@
         "note": "Pricing or availability documentation recorded; output quality has not been evaluated by Handoff."
       },
       "sourceUrl": "https://www.alibabacloud.com/help/en/model-studio/model-pricing",
-      "lastVerified": "2026-10-08T23:20:23.908Z",
+      "lastVerified": "2026-10-09T22:37:32.931Z",
       "tags": [
         "chinese-model",
         "budget",
@@ -60,7 +60,7 @@
       "pricingVerified": true,
       "sourceCheck": {
         "status": "verified",
-        "checkedAt": "2026-10-08T23:20:23.908Z",
+        "checkedAt": "2026-10-09T22:37:32.931Z",
         "note": "Scoped model pricing parsed and validated."
       }
     },
@@ -98,7 +98,7 @@
         "note": "Pricing or availability documentation recorded; output quality has not been evaluated by Handoff."
       },
       "sourceUrl": "https://ai.google.dev/gemini-api/docs/pricing",
-      "lastVerified": "2026-10-08T23:20:23.908Z",
+      "lastVerified": "2026-10-09T22:37:32.931Z",
       "tags": [
         "google",
         "quality",
@@ -108,7 +108,7 @@
       "pricingVerified": true,
       "sourceCheck": {
         "status": "verified",
-        "checkedAt": "2026-10-08T23:20:23.908Z",
+        "checkedAt": "2026-10-09T22:37:32.931Z",
         "note": "Scoped model pricing parsed and validated."
       }
     },
@@ -148,7 +148,7 @@
         "note": "Pricing or availability documentation recorded; output quality has not been evaluated by Handoff."
       },
       "sourceUrl": "https://api-docs.deepseek.com/quick_start/pricing/",
-      "lastVerified": "2026-10-08T23:20:23.908Z",
+      "lastVerified": "2026-10-09T22:37:32.931Z",
       "tags": [
         "chinese-model",
         "budget",
@@ -159,7 +159,7 @@
       "pricingVerified": true,
       "sourceCheck": {
         "status": "verified",
-        "checkedAt": "2026-10-08T23:20:23.908Z",
+        "checkedAt": "2026-10-09T22:37:32.931Z",
         "note": "Scoped model pricing parsed and validated."
       }
     },
@@ -199,7 +199,7 @@
         "note": "Pricing or availability documentation recorded; output quality has not been evaluated by Handoff."
       },
       "sourceUrl": "https://api-docs.deepseek.com/quick_start/pricing/",
-      "lastVerified": "2026-10-08T23:20:23.908Z",
+      "lastVerified": "2026-10-09T22:37:32.931Z",
       "tags": [
         "chinese-model",
         "quality",
@@ -210,7 +210,7 @@
       "pricingVerified": true,
       "sourceCheck": {
         "status": "verified",
-        "checkedAt": "2026-10-08T23:20:23.908Z",
+        "checkedAt": "2026-10-09T22:37:32.931Z",
         "note": "Scoped model pricing parsed and validated."
       }
     },
@@ -256,7 +256,7 @@
       "pricingVerified": false,
       "sourceCheck": {
         "status": "reachable",
-        "checkedAt": "2026-10-08T23:20:23.908Z",
+        "checkedAt": "2026-10-09T22:37:32.931Z",
         "note": "Official source reachable; no pricing parser. Price verification date retained."
       }
     },
@@ -301,7 +301,7 @@
       "pricingVerified": false,
       "sourceCheck": {
         "status": "reachable",
-        "checkedAt": "2026-10-08T23:20:23.908Z",
+        "checkedAt": "2026-10-09T22:37:32.931Z",
         "note": "Official source reachable; no pricing parser. Price verification date retained."
       }
     },
@@ -344,7 +344,7 @@
       "pricingVerified": false,
       "sourceCheck": {
         "status": "failed",
-        "checkedAt": "2026-10-08T23:20:23.908Z",
+        "checkedAt": "2026-10-09T22:37:32.931Z",
         "note": "Fetch or parser failed; previous prices and verification date retained."
       }
     },
@@ -387,7 +387,7 @@
       "pricingVerified": false,
       "sourceCheck": {
         "status": "reachable",
-        "checkedAt": "2026-10-08T23:20:23.908Z",
+        "checkedAt": "2026-10-09T22:37:32.931Z",
         "note": "Official source reachable; no pricing parser. Price verification date retained."
       }
     },
@@ -433,7 +433,7 @@
       "pricingVerified": false,
       "sourceCheck": {
         "status": "reachable",
-        "checkedAt": "2026-10-08T23:20:23.908Z",
+        "checkedAt": "2026-10-09T22:37:32.931Z",
         "note": "Official source reachable; no pricing parser. Price verification date retained."
       }
     },
@@ -477,7 +477,7 @@
       "pricingVerified": false,
       "sourceCheck": {
         "status": "reachable",
-        "checkedAt": "2026-10-08T23:20:23.908Z",
+        "checkedAt": "2026-10-09T22:37:32.931Z",
         "note": "Official source reachable; no pricing parser. Price verification date retained."
       }
     },
@@ -523,7 +523,7 @@
       "pricingVerified": false,
       "sourceCheck": {
         "status": "failed",
-        "checkedAt": "2026-10-08T23:20:23.908Z",
+        "checkedAt": "2026-10-09T22:37:32.931Z",
         "note": "Fetch or parser failed; previous prices and verification date retained."
       }
     },
@@ -565,7 +565,7 @@
       "pricingVerified": false,
       "sourceCheck": {
         "status": "reachable",
-        "checkedAt": "2026-10-08T23:20:23.908Z",
+        "checkedAt": "2026-10-09T22:37:32.931Z",
         "note": "Official source reachable; no pricing parser. Price verification date retained."
       }
     },
@@ -612,7 +612,7 @@
       "hardwareNote": "Existing CPU computer with sufficient RAM (model download about 2.5 GB plus runtime memory). Vendor usage is free; electricity and setup excluded. Supply sources locally; no web research is implied.",
       "sourceCheck": {
         "status": "reachable",
-        "checkedAt": "2026-10-08T23:20:23.908Z",
+        "checkedAt": "2026-10-09T22:37:32.931Z",
         "note": "Official source reachable; no pricing parser. Price verification date retained."
       }
     },
@@ -654,7 +654,7 @@
       "hardwareNote": "Free local engine. Check each downloaded voice model license before commercial use; existing CPU hardware required.",
       "sourceCheck": {
         "status": "reachable",
-        "checkedAt": "2026-10-08T23:20:23.908Z",
+        "checkedAt": "2026-10-09T22:37:32.931Z",
         "note": "Official source reachable; no pricing parser. Price verification date retained."
       }
     },
@@ -698,7 +698,7 @@
       "hardwareNote": "Free local office suite on existing hardware. Human editing and export checks required.",
       "sourceCheck": {
         "status": "reachable",
-        "checkedAt": "2026-10-08T23:20:23.908Z",
+        "checkedAt": "2026-10-09T22:37:32.931Z",
         "note": "Official source reachable; no pricing parser. Price verification date retained."
       }
     },
@@ -740,7 +740,7 @@
       "hardwareNote": "Free local OCR on existing CPU hardware; render PDF pages to images and validate extracted fields.",
       "sourceCheck": {
         "status": "reachable",
-        "checkedAt": "2026-10-08T23:20:23.908Z",
+        "checkedAt": "2026-10-09T22:37:32.931Z",
         "note": "Official source reachable; no pricing parser. Price verification date retained."
       }
     },
@@ -785,7 +785,7 @@
       "requiresGpu": true,
       "sourceCheck": {
         "status": "reachable",
-        "checkedAt": "2026-10-08T23:20:23.908Z",
+        "checkedAt": "2026-10-09T22:37:32.931Z",
         "note": "Official source reachable; no pricing parser. Price verification date retained."
       }
     }
@@ -1461,6 +1461,104 @@
       "source": "https://api-docs.deepseek.com/quick_start/pricing/",
       "parserVersion": "official-tables-v1",
       "changed": false
+    },
+    {
+      "itemId": "qwen-image-2-0",
+      "oldValue": {
+        "type": "per_image",
+        "currency": "USD",
+        "unitCost": 0.035,
+        "unit": "image",
+        "scope": "International / Singapore API; output image rate",
+        "accessMode": "api"
+      },
+      "newValue": {
+        "type": "per_image",
+        "currency": "USD",
+        "unitCost": 0.035,
+        "unit": "image",
+        "scope": "International / Singapore API; output image rate",
+        "accessMode": "api"
+      },
+      "detectedAt": "2026-10-09T22:37:32.931Z",
+      "source": "https://www.alibabacloud.com/help/en/model-studio/model-pricing",
+      "parserVersion": "official-tables-v1",
+      "changed": false
+    },
+    {
+      "itemId": "gemini-3-1-flash-image",
+      "oldValue": {
+        "type": "per_image",
+        "currency": "USD",
+        "unitCost": 0.067,
+        "unit": "1K image",
+        "scope": "Standard 1K output plus input tokens; batch and grounding excluded",
+        "inputPer1M": 0.5,
+        "accessMode": "api"
+      },
+      "newValue": {
+        "type": "per_image",
+        "currency": "USD",
+        "unitCost": 0.067,
+        "unit": "1K image",
+        "scope": "Standard 1K output plus input tokens; batch and grounding excluded",
+        "inputPer1M": 0.5,
+        "accessMode": "api"
+      },
+      "detectedAt": "2026-10-09T22:37:32.931Z",
+      "source": "https://ai.google.dev/gemini-api/docs/pricing",
+      "parserVersion": "official-tables-v1",
+      "changed": false
+    },
+    {
+      "itemId": "deepseek-flash",
+      "oldValue": {
+        "type": "token",
+        "currency": "USD",
+        "inputPer1M": 0.3,
+        "outputPer1M": 1.2,
+        "scope": "Peak USD rates per 1M tokens; caching/off-peak may reduce spend",
+        "cachedInputPer1M": 0.006,
+        "accessMode": "api"
+      },
+      "newValue": {
+        "type": "token",
+        "currency": "USD",
+        "inputPer1M": 0.3,
+        "outputPer1M": 1.2,
+        "scope": "Peak USD rates per 1M tokens; caching/off-peak may reduce spend",
+        "cachedInputPer1M": 0.006,
+        "accessMode": "api"
+      },
+      "detectedAt": "2026-10-09T22:37:32.931Z",
+      "source": "https://api-docs.deepseek.com/quick_start/pricing/",
+      "parserVersion": "official-tables-v1",
+      "changed": false
+    },
+    {
+      "itemId": "deepseek-v4-pro",
+      "oldValue": {
+        "type": "token",
+        "currency": "USD",
+        "inputPer1M": 1.32,
+        "outputPer1M": 3.96,
+        "scope": "Peak USD rates per 1M tokens; caching/off-peak may reduce spend",
+        "cachedInputPer1M": 0.044,
+        "accessMode": "api"
+      },
+      "newValue": {
+        "type": "token",
+        "currency": "USD",
+        "inputPer1M": 1.32,
+        "outputPer1M": 3.96,
+        "scope": "Peak USD rates per 1M tokens; caching/off-peak may reduce spend",
+        "cachedInputPer1M": 0.044,
+        "accessMode": "api"
+      },
+      "detectedAt": "2026-10-09T22:37:32.931Z",
+      "source": "https://api-docs.deepseek.com/quick_start/pricing/",
+      "parserVersion": "official-tables-v1",
+      "changed": false
     }
   ],
   "offerHistory": [
@@ -1714,6 +1812,37 @@
         "fallback": "Use paid international image pricing at $0.035 per image; recalculate the route first."
       },
       "detectedAt": "2026-10-08T23:20:23.908Z",
+      "source": "https://www.alibabacloud.com/help/en/model-studio/model-pricing",
+      "event": "observed",
+      "changed": true
+    },
+    {
+      "offerId": "qwen-new-account-image-quota",
+      "oldValue": {
+        "id": "qwen-new-account-image-quota",
+        "toolId": "qwen-image-2-0",
+        "title": "Qwen image new-account quota",
+        "status": "verified",
+        "description": "Official Singapore quota: 100 images. Account activation, eligibility and expiry conditions apply; confirm before assuming free usage.",
+        "eligibility": "Only qualifying provider accounts and regions. Confirm activation date and remaining quota with Alibaba Cloud.",
+        "limits": "Official Singapore quota: 100 images. Account activation, eligibility and expiry conditions apply; confirm before assuming free usage.",
+        "sourceUrl": "https://www.alibabacloud.com/help/en/model-studio/model-pricing",
+        "lastVerified": "2026-10-08T23:20:23.908Z",
+        "fallback": "Use paid international image pricing at $0.035 per image; recalculate the route first."
+      },
+      "newValue": {
+        "id": "qwen-new-account-image-quota",
+        "toolId": "qwen-image-2-0",
+        "title": "Qwen image new-account quota",
+        "status": "verified",
+        "description": "Official Singapore quota: 100 images. Account activation, eligibility and expiry conditions apply; confirm before assuming free usage.",
+        "eligibility": "Only qualifying provider accounts and regions. Confirm activation date and remaining quota with Alibaba Cloud.",
+        "limits": "Official Singapore quota: 100 images. Account activation, eligibility and expiry conditions apply; confirm before assuming free usage.",
+        "sourceUrl": "https://www.alibabacloud.com/help/en/model-studio/model-pricing",
+        "lastVerified": "2026-10-09T22:37:32.931Z",
+        "fallback": "Use paid international image pricing at $0.035 per image; recalculate the route first."
+      },
+      "detectedAt": "2026-10-09T22:37:32.931Z",
       "source": "https://www.alibabacloud.com/help/en/model-studio/model-pricing",
       "event": "observed",
       "changed": true
@@ -3079,6 +3208,176 @@
       "parserVersion": "reachability-v1",
       "priceVerified": false,
       "changeDetected": false
+    },
+    {
+      "source": "https://www.alibabacloud.com/help/en/model-studio/model-pricing",
+      "itemId": "qwen-image-2-0",
+      "ok": true,
+      "checkedAt": "2026-10-09T22:37:32.931Z",
+      "note": "Scoped model pricing parsed and validated.",
+      "parserVersion": "official-tables-v1",
+      "priceVerified": true,
+      "changeDetected": false
+    },
+    {
+      "source": "https://ai.google.dev/gemini-api/docs/pricing",
+      "itemId": "gemini-3-1-flash-image",
+      "ok": true,
+      "checkedAt": "2026-10-09T22:37:32.931Z",
+      "note": "Scoped model pricing parsed and validated.",
+      "parserVersion": "official-tables-v1",
+      "priceVerified": true,
+      "changeDetected": false
+    },
+    {
+      "source": "https://api-docs.deepseek.com/quick_start/pricing/",
+      "itemId": "deepseek-flash",
+      "ok": true,
+      "checkedAt": "2026-10-09T22:37:32.931Z",
+      "note": "Scoped model pricing parsed and validated.",
+      "parserVersion": "official-tables-v1",
+      "priceVerified": true,
+      "changeDetected": false
+    },
+    {
+      "source": "https://api-docs.deepseek.com/quick_start/pricing/",
+      "itemId": "deepseek-v4-pro",
+      "ok": true,
+      "checkedAt": "2026-10-09T22:37:32.931Z",
+      "note": "Scoped model pricing parsed and validated.",
+      "parserVersion": "official-tables-v1",
+      "priceVerified": true,
+      "changeDetected": false
+    },
+    {
+      "source": "https://z.ai/pricing",
+      "itemId": "glm-5-3",
+      "ok": true,
+      "checkedAt": "2026-10-09T22:37:32.931Z",
+      "note": "Official source reachable; no pricing parser. Price verification date retained.",
+      "parserVersion": "reachability-v1",
+      "priceVerified": false,
+      "changeDetected": false
+    },
+    {
+      "source": "https://www.anthropic.com/pricing",
+      "itemId": "claude-sonnet",
+      "ok": true,
+      "checkedAt": "2026-10-09T22:37:32.931Z",
+      "note": "Official source reachable; no pricing parser. Price verification date retained.",
+      "parserVersion": "reachability-v1",
+      "priceVerified": false,
+      "changeDetected": false
+    },
+    {
+      "source": "https://openai.com/chatgpt/pricing/",
+      "itemId": "chatgpt-plus",
+      "ok": false,
+      "checkedAt": "2026-10-09T22:37:32.931Z",
+      "note": "Fetch or parser failed; previous prices and verification date retained.",
+      "parserVersion": "reachability-v1",
+      "priceVerified": false,
+      "changeDetected": false
+    },
+    {
+      "source": "https://klingai.com/",
+      "itemId": "kling",
+      "ok": true,
+      "checkedAt": "2026-10-09T22:37:32.931Z",
+      "note": "Official source reachable; no pricing parser. Price verification date retained.",
+      "parserVersion": "reachability-v1",
+      "priceVerified": false,
+      "changeDetected": false
+    },
+    {
+      "source": "https://www.capcut.com/",
+      "itemId": "capcut",
+      "ok": true,
+      "checkedAt": "2026-10-09T22:37:32.931Z",
+      "note": "Official source reachable; no pricing parser. Price verification date retained.",
+      "parserVersion": "reachability-v1",
+      "priceVerified": false,
+      "changeDetected": false
+    },
+    {
+      "source": "https://www.blackmagicdesign.com/products/davinciresolve",
+      "itemId": "davinci-resolve",
+      "ok": true,
+      "checkedAt": "2026-10-09T22:37:32.931Z",
+      "note": "Official source reachable; no pricing parser. Price verification date retained.",
+      "parserVersion": "reachability-v1",
+      "priceVerified": false,
+      "changeDetected": false
+    },
+    {
+      "source": "https://www.canva.com/pricing/",
+      "itemId": "canva",
+      "ok": false,
+      "checkedAt": "2026-10-09T22:37:32.931Z",
+      "note": "Fetch or parser failed; previous prices and verification date retained.",
+      "parserVersion": "reachability-v1",
+      "priceVerified": false,
+      "changeDetected": false
+    },
+    {
+      "source": "https://www.cloudflare.com/plans/developer-platform/",
+      "itemId": "cloudflare-pages",
+      "ok": true,
+      "checkedAt": "2026-10-09T22:37:32.931Z",
+      "note": "Official source reachable; no pricing parser. Price verification date retained.",
+      "parserVersion": "reachability-v1",
+      "priceVerified": false,
+      "changeDetected": false
+    },
+    {
+      "source": "https://ollama.com/library/qwen3:4b",
+      "itemId": "qwen3-4b-local",
+      "ok": true,
+      "checkedAt": "2026-10-09T22:37:32.931Z",
+      "note": "Official source reachable; no pricing parser. Price verification date retained.",
+      "parserVersion": "reachability-v1",
+      "priceVerified": false,
+      "changeDetected": false
+    },
+    {
+      "source": "https://github.com/OHF-Voice/piper1-gpl",
+      "itemId": "piper-tts-local",
+      "ok": true,
+      "checkedAt": "2026-10-09T22:37:32.931Z",
+      "note": "Official source reachable; no pricing parser. Price verification date retained.",
+      "parserVersion": "reachability-v1",
+      "priceVerified": false,
+      "changeDetected": false
+    },
+    {
+      "source": "https://www.libreoffice.org/",
+      "itemId": "libreoffice-local",
+      "ok": true,
+      "checkedAt": "2026-10-09T22:37:32.931Z",
+      "note": "Official source reachable; no pricing parser. Price verification date retained.",
+      "parserVersion": "reachability-v1",
+      "priceVerified": false,
+      "changeDetected": false
+    },
+    {
+      "source": "https://tesseract-ocr.github.io/tessdoc/",
+      "itemId": "tesseract-local",
+      "ok": true,
+      "checkedAt": "2026-10-09T22:37:32.931Z",
+      "note": "Official source reachable; no pricing parser. Price verification date retained.",
+      "parserVersion": "reachability-v1",
+      "priceVerified": false,
+      "changeDetected": false
+    },
+    {
+      "source": "https://github.com/Comfy-Org/ComfyUI",
+      "itemId": "comfyui-local",
+      "ok": true,
+      "checkedAt": "2026-10-09T22:37:32.931Z",
+      "note": "Official source reachable; no pricing parser. Price verification date retained.",
+      "parserVersion": "reachability-v1",
+      "priceVerified": false,
+      "changeDetected": false
     }
   ],
   "offers": [
@@ -3091,7 +3390,7 @@
       "eligibility": "Only qualifying provider accounts and regions. Confirm activation date and remaining quota with Alibaba Cloud.",
       "limits": "Official Singapore quota: 100 images. Account activation, eligibility and expiry conditions apply; confirm before assuming free usage.",
       "sourceUrl": "https://www.alibabacloud.com/help/en/model-studio/model-pricing",
-      "lastVerified": "2026-10-08T23:20:23.908Z",
+      "lastVerified": "2026-10-09T22:37:32.931Z",
       "fallback": "Use paid international image pricing at $0.035 per image; recalculate the route first."
     }
   ]
