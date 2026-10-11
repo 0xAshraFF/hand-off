@@ -98,11 +98,13 @@ test("reachability never advances verification dates; source history appends wit
     after.items.map((i) => i.lastVerified),
     c.items.map((i) => i.lastVerified),
   );
+  // Every source is checked each run, so each one's latest check is always
+  // inside the retained window and nothing has to be pinned back in.
   assert.equal(
     after.sourceChecks!.length,
     Math.min(
       (c.sourceChecks?.length || 0) + c.items.length,
-      retention.sourceChecks + c.items.length,
+      retention.sourceChecks,
     ),
   );
 });
