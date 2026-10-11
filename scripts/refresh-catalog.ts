@@ -8,6 +8,32 @@ import {
   type SourceCheck,
 } from "../lib/catalog";
 import { pricingAdapter, parserVersion } from "../lib/providers/pricing";
+// The snapshot is rewritten and committed nightly, so every retained entry is
+// paid for again in each commit's blob. Caps keep the file flat instead of
+// growing ~11KB a night forever.
+export const retention = {
+  sourceChecks: 400,
+  priceHistory: 400,
+  offerHistory: 200,
+};
+function failureReason(error: unknown) {
+  const raw = error instanceof Error ? error.message : String(error);
+  return raw.replace(/\s+/g, " ").trim().slice(0, 160) || "Unknown error.";
+}
+const tail = <T>(entries: T[], limit: number) =>
+  entries.length > limit ? entries.slice(-limit) : entries;
+// getCatalogStatus reports per-source state from the last check for each
+// source, so those must survive pruning even when they fall out of the window.
+function pruneChecks(checks: SourceCheck[], limit: number) {
+  if (checks.length <= limit) return checks;
+  const latestPerSource = new Map(checks.map((c) => [c.source, c]));
+  const recent = tail(checks, limit);
+  const retained = new Set(recent);
+  return [
+    ...[...latestPerSource.values()].filter((c) => !retained.has(c)),
+    ...recent,
+  ];
+}
 export async function fetchSource(url: string) {
   if (new URL(url).protocol !== "https:")
     throw new Error("Source requires HTTPS.");
@@ -141,9 +167,10 @@ export async function refreshSnapshot(
           "Official source reachable; no pricing parser. Price verification date retained.";
       }
       check.ok = true;
-    } catch {
+    } catch (error) {
       check.note =
-        "Fetch or parser failed; previous prices and verification date retained.";
+        "Fetch or parser failed; previous prices and verification date retained. Reason: " +
+        failureReason(error);
       item.pricingVerified = item.pricingVerified ?? false;
     }
     item.sourceCheck = {
@@ -158,9 +185,12 @@ export async function refreshSnapshot(
     checks.push(check);
   }
   next.generatedAt = now;
-  next.priceHistory = history;
-  next.offerHistory = offerHistory;
-  next.sourceChecks = [...(next.sourceChecks || []), ...checks];
+  next.priceHistory = tail(history, retention.priceHistory);
+  next.offerHistory = tail(offerHistory, retention.offerHistory);
+  next.sourceChecks = pruneChecks(
+    [...(next.sourceChecks || []), ...checks],
+    retention.sourceChecks,
+  );
   next.policy = {
     ...next.policy,
     lastRefreshResult: {
@@ -168,6 +198,14 @@ export async function refreshSnapshot(
       successfulSources: checks.filter((c) => c.ok).length,
       verifiedPrices: checks.filter((c) => c.priceVerified).length,
       failedSources: checks.filter((c) => !c.ok).length,
+      // Items with no pricing adapter are only reachability-checked, so their
+      // lastVerified never moves and they read as stale forever.
+      unparseableItems: checks.filter(
+        (c) => c.ok && !c.priceVerified,
+      ).length,
+      failures: checks
+        .filter((c) => !c.ok)
+        .map((c) => ({ itemId: c.itemId, source: c.source, note: c.note })),
     },
   };
   return validateCatalog(next);
@@ -199,7 +237,30 @@ if (
   import.meta.url === pathToFileURL(path.resolve(process.argv[1])).href
 )
   refreshCatalog()
-    .then((result) => console.log("Catalog refresh:", result))
+    .then((result) => {
+      const r = result as {
+        successfulSources: number;
+        verifiedPrices: number;
+        failedSources: number;
+        unparseableItems: number;
+        failures?: { itemId?: string; source: string; note: string }[];
+      };
+      console.log(
+        `Catalog refresh: ${r.verifiedPrices} prices verified, ` +
+          `${r.unparseableItems} reachable but unparseable, ` +
+          `${r.failedSources} failed.`,
+      );
+      // A source that cannot be read leaves its item frozen at the last
+      // verified date, so surface it here rather than letting a green run
+      // imply the catalog is current.
+      for (const f of r.failures || [])
+        console.warn(`::warning::${f.itemId || f.source} — ${f.note}`);
+      if (r.unparseableItems)
+        console.warn(
+          `::warning::${r.unparseableItems} items have no pricing parser; ` +
+            `their verification dates cannot advance and they will read as stale.`,
+        );
+    })
     .catch(() => {
       console.error("Catalog refresh failed; previous snapshot retained.");
       process.exitCode = 1;

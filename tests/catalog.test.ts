@@ -14,7 +14,11 @@ import {
   parseGoogle,
   parseDeepSeek,
 } from "../lib/providers/pricing";
-import { refreshSnapshot, refreshCatalog } from "../scripts/refresh-catalog";
+import {
+  refreshSnapshot,
+  refreshCatalog,
+  retention,
+} from "../scripts/refresh-catalog";
 const catalog = () =>
   JSON.parse(
     fs.readFileSync("data/catalog.snapshot.json", "utf8"),
@@ -87,7 +91,7 @@ test("fetch/parser failures preserve all old prices and dates", async () => {
     catalog().items.map((i) => i.pricing),
   );
 });
-test("reachability never advances verification dates; full source history appends", async () => {
+test("reachability never advances verification dates; source history appends within retention", async () => {
   const c = catalog(),
     after = await refreshSnapshot(c, async () => "<html>reachable</html>");
   assert.deepEqual(
@@ -96,7 +100,68 @@ test("reachability never advances verification dates; full source history append
   );
   assert.equal(
     after.sourceChecks!.length,
-    (c.sourceChecks?.length || 0) + c.items.length,
+    Math.min(
+      (c.sourceChecks?.length || 0) + c.items.length,
+      retention.sourceChecks + c.items.length,
+    ),
+  );
+});
+test("source history stays bounded so the nightly commit does not grow forever", async () => {
+  let c = catalog();
+  const filler = Array.from(
+    { length: retention.sourceChecks + c.items.length * 2 },
+    (_, n) => ({
+      source: "https://example.invalid/filler",
+      itemId: "filler",
+      ok: true,
+      checkedAt: new Date(Date.UTC(2020, 0, 1) + n * 1000).toISOString(),
+      note: "filler",
+    }),
+  );
+  c = { ...c, sourceChecks: [...filler, ...(c.sourceChecks || [])] };
+  const after = await refreshSnapshot(c, async () => "<html>reachable</html>");
+  assert.ok(
+    after.sourceChecks!.length <= retention.sourceChecks + c.items.length,
+    "retained " + after.sourceChecks!.length + " checks",
+  );
+  // getCatalogStatus derives per-source state from the last check for each
+  // source, so pruning must never drop one of those.
+  for (const item of after.items)
+    assert.ok(
+      after.sourceChecks!.some((ch) => ch.source === item.sourceUrl),
+      "lost the latest check for " + item.id,
+    );
+  // Status dedupes checks by source, so pruning must leave it able to report
+  // on every source the catalog actually depends on.
+  const reported = new Set(after.sourceChecks!.map((ch) => ch.source));
+  for (const url of new Set(after.items.map((i) => i.sourceUrl)))
+    assert.ok(reported.has(url), "status lost visibility of " + url);
+});
+test("a failed source records why, so a broken parser can be diagnosed", async () => {
+  const c = catalog();
+  const after = await refreshSnapshot(c, async (url) => {
+    if (url.includes("deepseek")) throw new Error("Source returned HTTP 403");
+    return "<html>reachable</html>";
+  });
+  const thisRun = after.sourceChecks!.filter(
+    (ch) => ch.checkedAt === after.generatedAt,
+  );
+  const deepseek = thisRun.filter((ch) => ch.source.includes("deepseek"));
+  assert.ok(deepseek.length > 0, "expected deepseek checks this run");
+  for (const ch of deepseek) {
+    assert.equal(ch.ok, false);
+    assert.match(ch.note, /Reason: Source returned HTTP 403/);
+  }
+  // A parser that breaks on changed markup names its own failure too, rather
+  // than reporting the same generic sentence as a network error.
+  const qwen = thisRun.find((ch) => ch.source.includes("alibabacloud"))!;
+  assert.match(qwen.note, /Reason: .*Qwen/);
+  const result = after.policy.lastRefreshResult as {
+    failures: { note: string }[];
+  };
+  assert.equal(
+    result.failures.length,
+    thisRun.filter((ch) => !ch.ok).length,
   );
 });
 test("recognized price change appends history, validates and retains old record", async () => {
