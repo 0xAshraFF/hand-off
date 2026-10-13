@@ -1,0 +1,293 @@
+<title>Models in Your Budget</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500;700&display=swap">
+<style>
+  :root {
+    --paper:#EEF1EF; --surface:#FBFCFB; --surface-2:#F4F6F4; --surface-3:#E8ECEA;
+    --ink:#12171A; --muted:#5B686D; --line:#D2D9D5;
+    --teal:#0B7D72; --teal-wash:#E4F1EF;
+    --amber:#A75B0C; --amber-wash:#F8EDE1;
+    --display:"Bricolage Grotesque","Trebuchet MS",sans-serif;
+    --body:"Instrument Sans",-apple-system,"Segoe UI",sans-serif;
+    --mono:"JetBrains Mono",ui-monospace,Menlo,monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --paper:#0D1113; --surface:#161B1E; --surface-2:#1B2124; --surface-3:#232A2E;
+      --ink:#E9EEEB; --muted:#93A09F; --line:#2A3235;
+      --teal:#45C3B4; --teal-wash:#12292A;
+      --amber:#E39A4A; --amber-wash:#2B2015;
+    }
+  }
+  :root[data-theme="dark"] {
+    --paper:#0D1113; --surface:#161B1E; --surface-2:#1B2124; --surface-3:#232A2E;
+    --ink:#E9EEEB; --muted:#93A09F; --line:#2A3235;
+    --teal:#45C3B4; --teal-wash:#12292A;
+    --amber:#E39A4A; --amber-wash:#2B2015;
+  }
+
+  body {
+    background: var(--paper); color: var(--ink);
+    font-family: var(--body); font-size: 15px; line-height: 1.55;
+    margin: 0; padding-inline: 20px; padding-block: 40px 72px;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 1120px; margin: 0 auto; display: flex; flex-direction: column; gap: 32px; }
+
+  .eyebrow {
+    font-family: var(--mono); font-size: 11px; letter-spacing: .13em;
+    text-transform: uppercase; color: var(--muted); margin: 0 0 10px;
+  }
+  h1 {
+    font-family: var(--display); font-weight: 700; font-size: clamp(29px, 5.2vw, 44px);
+    line-height: 1.05; letter-spacing: -.022em; margin: 0 0 14px; text-wrap: balance;
+  }
+  .lede { font-size: 16.5px; color: var(--muted); max-width: 64ch; margin: 0; }
+  .lede strong { color: var(--ink); font-weight: 600; }
+
+  .tabs { display: flex; flex-wrap: wrap; gap: 8px; }
+  .tab {
+    font-family: var(--body); font-size: 13.5px; font-weight: 500;
+    padding: 9px 15px; border-radius: 999px; cursor: pointer;
+    border: 1px solid var(--line); background: var(--surface); color: var(--muted);
+    transition: background .15s, color .15s, border-color .15s;
+  }
+  .tab:hover { border-color: var(--muted); color: var(--ink); }
+  .tab[aria-selected="true"] { background: var(--ink); color: var(--paper); border-color: var(--ink); font-weight: 600; }
+  .tab:focus-visible { outline: 2px solid var(--teal); outline-offset: 2px; }
+
+  .counter { display: flex; flex-direction: column; gap: 5px; }
+  .counter .big {
+    font-family: var(--display); font-size: clamp(22px, 3.4vw, 30px); font-weight: 700;
+    letter-spacing: -.018em; margin: 0; text-wrap: balance;
+  }
+  .counter .sub { font-size: 13.5px; color: var(--muted); margin: 0; }
+
+  /* model cards */
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(268px, 1fr)); gap: 14px; }
+  .card {
+    border: 1px solid var(--line); border-radius: 12px; background: var(--surface);
+    padding: 17px 18px 16px; display: flex; flex-direction: column; gap: 11px;
+  }
+  .card.fresh { border-color: var(--teal); }
+  .card-top { display: flex; flex-direction: column; gap: 3px; }
+  .flag {
+    align-self: flex-start; font-family: var(--mono); font-size: 9.5px; letter-spacing: .1em;
+    text-transform: uppercase; color: var(--teal); border: 1px solid var(--teal);
+    background: var(--teal-wash); padding: 3px 7px; border-radius: 5px; margin-bottom: 5px;
+  }
+  .flag.spacer { visibility: hidden; }
+  .mname {
+    font-family: var(--display); font-size: 18px; font-weight: 700;
+    letter-spacing: -.012em; line-height: 1.15;
+  }
+  .mprov { font-size: 12.5px; color: var(--muted); }
+  .price {
+    font-family: var(--mono); font-size: 12.5px; font-variant-numeric: tabular-nums;
+    color: var(--ink); padding: 8px 0; border-block: 1px solid var(--line);
+    display: flex; flex-direction: column; gap: 3px;
+  }
+  .price .rate { color: var(--muted); }
+  .price .mo { color: var(--teal); font-weight: 700; }
+  .fit { display: flex; flex-direction: column; gap: 7px; font-size: 13.5px; }
+  .fit .lab {
+    font-family: var(--mono); font-size: 9.5px; letter-spacing: .1em;
+    text-transform: uppercase; color: var(--muted); display: block; margin-bottom: 2px;
+  }
+  .fit .good { color: var(--ink); }
+  .fit .bad { color: var(--muted); }
+  .tags { display: flex; flex-wrap: wrap; gap: 5px; margin-top: auto; padding-top: 4px; }
+  .tag {
+    font-family: var(--mono); font-size: 9.5px; letter-spacing: .06em; text-transform: uppercase;
+    color: var(--muted); border: 1px solid var(--line); background: var(--surface-2);
+    padding: 3px 7px; border-radius: 4px;
+  }
+
+  .note {
+    border-left: 3px solid var(--teal); background: var(--surface);
+    padding: 16px 19px; border-radius: 0 9px 9px 0; font-size: 14.5px; color: var(--muted);
+  }
+  .note.warn { border-left-color: var(--amber); }
+  .note b { color: var(--ink); font-weight: 600; }
+  .note .ch {
+    font-family: var(--mono); font-size: 10.5px; letter-spacing: .1em; text-transform: uppercase;
+    display: block; margin-bottom: 7px; color: var(--ink);
+  }
+  h2 {
+    font-family: var(--display); font-weight: 700; font-size: clamp(20px, 3vw, 25px);
+    letter-spacing: -.015em; margin: 0 0 8px; text-wrap: balance;
+  }
+  section { display: flex; flex-direction: column; gap: 14px; }
+  section > p { max-width: 65ch; color: var(--muted); margin: 0; }
+  footer { font-size: 12.5px; color: var(--muted); border-top: 1px solid var(--line); padding-top: 18px; }
+  footer a { color: var(--muted); }
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+
+<div class="wrap">
+
+  <header>
+    <p class="eyebrow">Handoff · what your budget buys · 20 Sep 2026</p>
+    <h1>You can afford more than you think, and more names than you know</h1>
+    <p class="lede">Nothing here is a ruling. Pick what you can spend and this shows <strong>everything in reach</strong> — what each one is genuinely good at, and what it is the wrong tool for. Most people arrive knowing two of these names. Leave knowing nine, then go try them.</p>
+  </header>
+
+  <div class="tabs" role="tablist" aria-label="Budget">
+    <button class="tab" role="tab" id="t-free" aria-selected="true"  onclick="pick('free')">Free</button>
+    <button class="tab" role="tab" id="t-low"  aria-selected="false" onclick="pick('low')">Under $5 a month</button>
+    <button class="tab" role="tab" id="t-mid"  aria-selected="false" onclick="pick('mid')">Under $15 a month</button>
+    <button class="tab" role="tab" id="t-top"  aria-selected="false" onclick="pick('top')">No ceiling</button>
+  </div>
+
+  <div class="counter">
+    <p class="big" id="c-big"></p>
+    <p class="sub" id="c-sub"></p>
+  </div>
+
+  <div class="grid" id="grid"></div>
+
+  <p class="note warn" id="tiernote"></p>
+
+  <section>
+    <h2>Cheap is not worse. It is different work.</h2>
+    <p>The single most useful thing an experienced person knows, and the thing nobody tells a newcomer.</p>
+    <p class="note"><span class="ch">The Haiku rule</span>You cannot build a quant engine on <b>Claude Haiku 4.5</b>. You also should not be paying frontier prices to tag ten thousand support emails — and for <i>that</i>, Haiku is close to ideal. It is not a worse model. It is a model for different work.<br><br>This is why nothing on this page is ranked. A ranking tells you which model is "best", which is the wrong question and quietly pushes everyone toward the most expensive answer. <b>Fit tells you where each one shines and where it will let you down</b> — and once you have that, the cheap models stop looking like compromises and start looking like the right tool for two thirds of what you actually do.</p>
+  </section>
+
+  <section>
+    <h2>Then go and explore</h2>
+    <p class="note"><span class="ch">A starting point, not a verdict</span>Every name here is one you can use today, inside the budget you set. Try two. Swap one out when it disappoints you. The recommendation exists so you have somewhere to <i>begin</i> rather than forty open tabs and a chatbot conversation that goes nowhere — <b>not to close the question down</b>.<br><br>When you hand the summary to Claude or ChatGPT, it will tell you which keys to get and how to wire them up. That part is genuinely easy once you know the names. Knowing the names is the hard part, and that is the part this solves.</p>
+  </section>
+
+  <footer>
+    Monthly figures assume moderate use — about 1.5M input and 0.5M output tokens a month. Your real number
+    scales directly with volume. Prices are list, per million tokens, September 2026.
+    Sources: <a href="https://openrouter.ai/moonshotai/kimi-k3">Kimi K3</a> ·
+    <a href="https://models.dev/models/zhipuai/glm-5.3/">GLM-5.3</a> ·
+    <a href="https://docs.x.ai/developers/pricing">xAI</a> ·
+    <a href="https://artificialanalysis.ai/models/gpt-6-astra">GPT-6 Astra</a> ·
+    <a href="https://llm-stats.com/benchmarks/swe-bench-verified">SWE-bench Verified</a> ·
+    <a href="https://modelgrep.com/best/free">free models</a>
+  </footer>
+
+</div>
+
+<script>
+// mo = estimated $/month at 1.5M in + 0.5M out. null where the model is free or unpriced.
+const M = {
+  free: [
+    { n:"Qwen — smaller sizes", p:"Alibaba, on your own machine", inp:"$0", out:"$0", mo:"$0",
+      good:"Running everything locally. No per-token cost, nothing leaves your machine.",
+      bad:"You pay in hardware instead. A big model needs a big GPU.", tags:["Open weights","Local","Sized to fit"] },
+    { n:"Inkling Small", p:"Thinking Machines", inp:"$0", out:"$0", mo:"$0", fresh:true,
+      good:"A free tier that still scores 32.2 on the Intelligence Index.",
+      bad:"Free tiers come with rate limits. Fine to learn on, risky to depend on.", tags:["Free tier","Via OpenRouter"] },
+    { n:"Nemotron 3 Ultra", p:"NVIDIA", inp:"$0", out:"$0", mo:"$0", fresh:true,
+      good:"Free experimentation without a card on file.",
+      bad:"Rate limited, and free tiers move without warning.", tags:["Free tier"] },
+    { n:"Ling 3.0 Flash Fin", p:"InclusionAI", inp:"$0", out:"$0", mo:"$0", fresh:true,
+      good:"Another genuinely free option worth trying before you spend anything.",
+      bad:"Thinly documented compared to the big names.", tags:["Free tier"] }
+  ],
+  low: [
+    { n:"Qwen3.7 Flash", p:"Alibaba", inp:"$0.03", out:"$0.13", mo:"~$0.11", fresh:true,
+      good:"Tagging, sorting and classifying at huge volume. The cheapest paid API listed.",
+      bad:"Not for multi-step reasoning. Give it small, clear jobs.", tags:["Cheapest paid","High volume"] },
+    { n:"DeepSeek V4 Flash", p:"DeepSeek, via OpenRouter", inp:"$0.036", out:"$0.071", mo:"~$0.09", fresh:true,
+      good:"Highest-volume, lowest-stakes work. Startlingly cheap through the gateway.",
+      bad:"Gateway pricing can move. Check before you build a budget on it.", tags:["Via OpenRouter"] },
+    { n:"GLM-5.3-Flash", p:"Zhipu", inp:"$0.15", out:"$0.50", mo:"~$0.48", fresh:true,
+      good:"Filling structured forms, pulling fields out of text, cheap everyday coding.",
+      bad:"The full GLM-5.3 is meaningfully stronger on hard problems.", tags:["Structured output"] },
+    { n:"DeepSeek V4.1 Flash", p:"DeepSeek", inp:"$0.15", out:"$0.60", mo:"~$0.53", fresh:true,
+      good:"Anything with a repeated prompt — cache hits bill at $0.003 a million.",
+      bad:"Peak-hours pricing is double the off-peak rate quoted here.", tags:["JSON schema","Cache $0.003"] },
+    { n:"Grok 4.1 Fast", p:"xAI", inp:"$0.20", out:"$0.50", mo:"~$0.55", fresh:true,
+      good:"Very long documents on a small budget — a 2 million token window at this price.",
+      bad:"Past 200K tokens the whole request bills at double rate.", tags:["2M context"] },
+    { n:"Gemini 3.1 Flash-Lite", p:"Google", inp:"$0.25", out:"$1.50", mo:"~$1.13",
+      good:"Fast work that involves images or screenshots as well as text.",
+      bad:"Output tokens cost six times the input. Watch chatty responses.", tags:["Multimodal","Fast"] },
+    { n:"Claude Haiku 4.5", p:"Anthropic", inp:"$1.00", out:"$5.00", mo:"~$4.00",
+      good:"High-volume classification, safety checks, quick edits, routing decisions.",
+      bad:"Not for a quant engine or deep reasoning. Wrong tool, not a weak one.", tags:["200K context","Reliable"] },
+    { n:"GLM-5.3", p:"Zhipu", inp:"$1.40", out:"$4.40", mo:"~$4.30", fresh:true,
+      good:"Serious coding at a fraction of frontier prices. 1M context, open weights.",
+      bad:"Needs real hardware if you want to self-host those open weights.", tags:["Open weights","1M context"] }
+  ],
+  mid: [
+    { n:"Grok 4.6", p:"xAI", inp:"$2.00", out:"$6.00", mo:"~$6.00", fresh:true,
+      good:"A capable generalist, with cached input at $0.50 a million.",
+      bad:"Doubles past a 200K-token prompt.", tags:["Cached $0.50"] },
+    { n:"Kimi K3", p:"Moonshot", inp:"$2.85", out:"$14.25", mo:"~$11.40", fresh:true,
+      good:"Building interfaces — it is #1 on Frontend Code Arena, ahead of Claude Fable 5. Also strong on long agent runs.",
+      bad:"Output is expensive. Open weights, but 2.8 trillion parameters — not runnable at home.", tags:["#1 frontend","1M context","Open weights"] },
+    { n:"GLM-5.3", p:"Zhipu", inp:"$1.40", out:"$4.40", mo:"~$4.30", fresh:true,
+      good:"Still the value pick at this tier — leaves budget spare for a second model.",
+      bad:"Not the top of any leaderboard. It is the one that does not make you choose.", tags:["Open weights","1M context"] },
+    { n:"Claude Haiku 4.5", p:"Anthropic", inp:"$1.00", out:"$5.00", mo:"~$4.00",
+      good:"Pair it with something stronger: Haiku for the volume, the other for the hard parts.",
+      bad:"On its own it will disappoint you on anything genuinely difficult.", tags:["Pairs well"] }
+  ],
+  top: [
+    { n:"GPT-6 Astra", p:"OpenAI", inp:"$10.00", out:"$50.00", mo:"~$40.00",
+      good:"The hardest end-to-end work. Intelligence 45.2, Coding 76.2, GPQA 89.5.",
+      bad:"Output at $50 a million punishes anything high-volume. Route the bulk elsewhere.", tags:["1.05M context","Flagship"] },
+    { n:"Claude Opus 5", p:"Anthropic", inp:"—", out:"—", mo:"—",
+      good:"Hardest real-repo debugging — 96% on SWE-bench Verified, top of the board.",
+      bad:"Overkill for simple, repetitive work you could run for cents.", tags:["#1 SWE-bench"] },
+    { n:"Kimi K3", p:"Moonshot", inp:"$2.85", out:"$14.25", mo:"~$11.40", fresh:true,
+      good:"Even with no ceiling, still the one to reach for on interface work.",
+      bad:"Expensive output if you let it ramble.", tags:["#1 frontend","Open weights"] },
+    { n:"GLM-5.3", p:"Zhipu", inp:"$1.40", out:"$4.40", mo:"~$4.30", fresh:true,
+      good:"Worth keeping even here — run it for everything that is not the hard part.",
+      bad:"You will notice the gap on genuinely difficult problems.", tags:["Open weights"] }
+  ]
+};
+
+const NOTES = {
+  free: "Free tiers are the right place to learn and the wrong place to build something people depend on. Rate limits are real, and free offerings get withdrawn. Move to the paid cheap tier the moment it matters — at these prices that step costs you about a coffee a year.",
+  low: "This tier is the actual answer for most projects, and almost nobody arrives believing that. Eight usable models, the priciest running about four dollars a month at moderate use. If you only know Claude and ChatGPT, this is the tab worth sitting with.",
+  mid: "The interesting move here is not buying one better model — it is running two. Something cheap for volume, something strong for the hard parts. That split is what experienced people actually do, and it is invisible from the outside.",
+  top: "Even with no budget ceiling, using one frontier model for everything is the expensive mistake. The bulk of most projects is simple work that a model costing a hundredth as much handles fine. Spend the money where it changes the outcome."
+};
+
+const HEADS = {
+  free: ["Four ways to start without spending anything", "Enough to build something real and find out what you actually need."],
+  low:  ["Eight models, none over $5 a month", "This is where the bang-for-buck lives, and where most people never look."],
+  mid:  ["Everything below, plus the specialists", "Enough room to run two models and let each do what it is good at."],
+  top:  ["No limit — which makes the choice harder, not easier", "The trap at this tier is paying frontier prices for work that does not need it."]
+};
+
+function pick(k) {
+  document.querySelectorAll('.tab').forEach(t => t.setAttribute('aria-selected', t.id === 't-' + k));
+  const list = M[k];
+  document.getElementById('c-big').textContent = HEADS[k][0];
+  const fresh = list.filter(m => m.fresh).length;
+  document.getElementById('c-sub').textContent =
+    HEADS[k][1] + (fresh ? '  ·  ' + fresh + ' of these are names most people have never tried.' : '');
+
+  document.getElementById('grid').innerHTML = list.map(m => `
+    <div class="card${m.fresh ? ' fresh' : ''}">
+      <div class="card-top">
+        <span class="flag${m.fresh ? '' : ' spacer'}"${m.fresh ? '' : ' aria-hidden="true"'}>Worth discovering</span>
+        <span class="mname">${m.n}</span>
+        <span class="mprov">${m.p}</span>
+      </div>
+      <div class="price">
+        <span class="rate">${m.inp} in / ${m.out} out</span>
+        <span class="mo">${m.mo}${m.mo === '—' || m.mo === '$0' ? '' : '/mo'}</span>
+      </div>
+      <div class="fit">
+        <div><span class="lab">Shines at</span><span class="good">${m.good}</span></div>
+        <div><span class="lab">Not for</span><span class="bad">${m.bad}</span></div>
+      </div>
+      <div class="tags">${m.tags.map(t => `<span class="tag">${t}</span>`).join('')}</div>
+    </div>`).join('');
+
+  document.getElementById('tiernote').innerHTML =
+    '<span class="ch">About this tier</span>' + NOTES[k];
+}
+pick('free');
+</script>
