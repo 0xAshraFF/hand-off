@@ -1,0 +1,370 @@
+<title>Handoff Screen Flow</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500;700&display=swap">
+<style>
+  :root {
+    --paper:#EEF1EF; --surface:#FBFCFB; --surface-2:#F4F6F4;
+    --ink:#12171A; --muted:#5B686D; --line:#D2D9D5;
+    --teal:#0B7D72; --teal-wash:#E4F1EF;
+    --amber:#A75B0C; --amber-wash:#F8EDE1;
+    --display:"Bricolage Grotesque","Trebuchet MS",sans-serif;
+    --body:"Instrument Sans",-apple-system,"Segoe UI",sans-serif;
+    --mono:"JetBrains Mono",ui-monospace,Menlo,monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --paper:#0D1113; --surface:#161B1E; --surface-2:#1B2124;
+      --ink:#E9EEEB; --muted:#93A09F; --line:#2A3235;
+      --teal:#45C3B4; --teal-wash:#12292A;
+      --amber:#E39A4A; --amber-wash:#2B2015;
+    }
+  }
+  :root[data-theme="dark"] {
+    --paper:#0D1113; --surface:#161B1E; --surface-2:#1B2124;
+    --ink:#E9EEEB; --muted:#93A09F; --line:#2A3235;
+    --teal:#45C3B4; --teal-wash:#12292A;
+    --amber:#E39A4A; --amber-wash:#2B2015;
+  }
+  body {
+    background: var(--paper); color: var(--ink);
+    font-family: var(--body); font-size: 15px; line-height: 1.55;
+    margin: 0; padding-inline: 20px; padding-block: 44px 72px;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 1080px; margin: 0 auto; display: flex; flex-direction: column; gap: 50px; }
+  .eyebrow {
+    font-family: var(--mono); font-size: 11px; letter-spacing: .13em;
+    text-transform: uppercase; color: var(--muted); margin: 0 0 10px;
+  }
+  h1 {
+    font-family: var(--display); font-weight: 700; font-size: clamp(30px, 5.4vw, 46px);
+    line-height: 1.04; letter-spacing: -.022em; margin: 0 0 14px; text-wrap: balance;
+  }
+  h2 {
+    font-family: var(--display); font-weight: 700; font-size: clamp(20px, 3vw, 25px);
+    letter-spacing: -.015em; margin: 0 0 8px; text-wrap: balance;
+  }
+  .lede { font-size: 16.5px; color: var(--muted); max-width: 63ch; margin: 0; }
+  .lede strong { color: var(--ink); font-weight: 600; }
+  section > p { max-width: 65ch; color: var(--muted); margin: 0 0 20px; }
+  .legend { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 24px; }
+  .key {
+    display: flex; align-items: baseline; gap: 8px; padding: 9px 13px;
+    border-radius: 7px; border: 1px solid var(--line); background: var(--surface); font-size: 12.5px;
+  }
+  .key b { font-weight: 600; }
+  .key.t { border-color: var(--teal); background: var(--teal-wash); }
+  .key.t b { color: var(--teal); }
+  .key.a { border-color: var(--amber); background: var(--amber-wash); }
+  .key.a b { color: var(--amber); }
+  .key span { color: var(--muted); }
+  figure { margin: 0; }
+  .scroller {
+    overflow-x: auto; border: 1px solid var(--line); border-radius: 12px;
+    background: var(--surface); padding: 18px;
+  }
+  .scroller svg { display: block; max-width: 100%; height: auto; }
+  #flowchart { min-width: 740px; }
+  #thecall { min-width: 640px; }
+  #pipeline { min-width: 620px; }
+  figcaption { margin-top: 12px; font-size: 13px; color: var(--muted); max-width: 66ch; }
+  .hint {
+    font-family: var(--mono); font-size: 10.5px; letter-spacing: .08em;
+    text-transform: uppercase; color: var(--muted); margin: 0 0 9px;
+  }
+  .dg-node { fill: var(--surface-2); stroke: var(--line); stroke-width: 1.25; }
+  .dg-node-t { fill: var(--teal-wash); stroke: var(--teal); stroke-width: 1.5; }
+  .dg-node-a { fill: var(--amber-wash); stroke: var(--amber); stroke-width: 1.5; }
+  .dg-node-key { fill: var(--surface-2); stroke: var(--ink); stroke-width: 2; }
+  .dg-dash { stroke-dasharray: 5 4; }
+  .dg-edge { fill: none; stroke: var(--muted); stroke-width: 1.4; marker-end: url(#ah); }
+  .dg-edge-t { fill: none; stroke: var(--teal); stroke-width: 1.7; marker-end: url(#ah-t); }
+  .dg-edge-a { fill: none; stroke: var(--amber); stroke-width: 1.7; marker-end: url(#ah-a); }
+  .ah { fill: var(--muted); } .ah-t { fill: var(--teal); } .ah-a { fill: var(--amber); }
+  text { font-family: var(--body); }
+  .dg-t { fill: var(--ink); font-size: 12.5px; font-weight: 600; }
+  .dg-t-lg { fill: var(--ink); font-size: 14px; font-weight: 700; }
+  .dg-s { fill: var(--muted); font-size: 11px; }
+  .dg-m { font-family: var(--mono); font-size: 10.5px; fill: var(--muted); }
+  .dg-lbl { font-size: 11px; font-weight: 500; }
+  .dg-teal { fill: var(--teal); } .dg-amber { fill: var(--amber); }
+  .screens { display: grid; grid-template-columns: repeat(auto-fit, minmax(258px, 1fr)); gap: 14px; }
+  .screen {
+    border: 1px solid var(--line); border-radius: 11px; background: var(--surface);
+    padding: 17px 17px 15px; display: flex; flex-direction: column; gap: 9px;
+  }
+  .screen.key { border-color: var(--ink); border-width: 1.5px; }
+  .screen.away { border-style: dashed; }
+  .screen h3 {
+    font-family: var(--display); font-size: 16.5px; font-weight: 700;
+    letter-spacing: -.01em; margin: 0; text-wrap: balance;
+  }
+  .screen .tag {
+    font-family: var(--mono); font-size: 10px; letter-spacing: .12em;
+    text-transform: uppercase; color: var(--muted);
+  }
+  .screen ul { margin: 0; padding-left: 16px; font-size: 13.5px; color: var(--muted); }
+  .screen li { margin-bottom: 3px; }
+  .screen li b { color: var(--ink); font-weight: 600; }
+  .next {
+    margin-top: auto; padding-top: 10px; border-top: 1px solid var(--line);
+    font-size: 12.5px; color: var(--muted);
+  }
+  .next b { color: var(--ink); font-weight: 600; }
+  .note {
+    border-left: 3px solid var(--teal); background: var(--surface);
+    padding: 15px 18px; border-radius: 0 9px 9px 0; font-size: 14.5px;
+    color: var(--muted); max-width: 70ch;
+  }
+  .note.warn { border-left-color: var(--amber); }
+  .note b { color: var(--ink); font-weight: 600; }
+  .note .ch {
+    font-family: var(--mono); font-size: 10.5px; letter-spacing: .1em; text-transform: uppercase;
+    display: block; margin-bottom: 7px; color: var(--ink);
+  }
+  footer { font-size: 12.5px; color: var(--muted); border-top: 1px solid var(--line); padding-top: 18px; }
+</style>
+
+<div class="wrap">
+
+  <header>
+    <p class="eyebrow">Handoff · user flow · 20 Sep 2026</p>
+    <h1>Borrow their chatbot, then hand it back something it could not have told them</h1>
+    <p class="lede">The expensive part — breaking a project into tasks — is done by a model the user already pays for, which already knows their project. We take the list it produces, price it against a live catalog, and send back the one thing their assistant would never volunteer: <strong>the models that aren't its own.</strong></p>
+    <div class="legend">
+      <div class="key"><b>In the app</b><span>our screens</span></div>
+      <div class="key a"><b>Away</b><span>their chatbot, costs us nothing</span></div>
+      <div class="key t"><b>Deterministic</b><span>our code, no model involved</span></div>
+    </div>
+  </header>
+
+  <section>
+    <h2>The whole flow</h2>
+    <p>The excursion out to their own chatbot and back is the distinctive move. Everything after it happens in one backend call.</p>
+    <figure>
+      <p class="hint">Scroll sideways on a narrow screen</p>
+      <div class="scroller">
+        <svg id="flowchart" viewBox="0 0 980 1020" role="img" aria-label="Flowchart. A visitor lands, with interface language auto-detected from the browser. Step one gives them a prompt to copy. They take it away to their own chatbot, which already knows their project and costs us nothing. Step two is pasting the returned task list back. Step three is budget, step four is the languages the project must work in, which changes the recommendations. Then a single backend call classifies and scores. Results show every task with a model plus cheaper and pricier variants, with single-key models marked, and the user can swap anything. A handoff document is then built in code, in their language, leading with the instruction to get one OpenRouter key.">
+          <defs>
+            <marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" class="ah"/></marker>
+            <marker id="ah-t" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" class="ah-t"/></marker>
+            <marker id="ah-a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" class="ah-a"/></marker>
+          </defs>
+
+          <rect x="230" y="16" width="300" height="52" rx="8" class="dg-node"/>
+          <text x="380" y="39" text-anchor="middle" class="dg-t">Opens handoff.app</text>
+          <text x="380" y="57" text-anchor="middle" class="dg-s">no sign-in wall, language already set</text>
+          <path d="M380 68 L380 92" class="dg-edge"/>
+
+          <rect x="230" y="98" width="300" height="58" rx="8" class="dg-node"/>
+          <text x="380" y="121" text-anchor="middle" class="dg-t">1 — Copy our prompt</text>
+          <text x="380" y="139" text-anchor="middle" class="dg-s">"Give me a project handoff, task by task"</text>
+          <text x="380" y="152" text-anchor="middle" class="dg-m">ONE BUTTON</text>
+
+          <path d="M530 122 L654 122" class="dg-edge-a"/>
+          <text x="592" y="114" text-anchor="middle" class="dg-lbl dg-amber">they take it</text>
+
+          <rect x="660" y="88" width="300" height="104" rx="8" class="dg-node-a dg-dash"/>
+          <text x="810" y="112" text-anchor="middle" class="dg-t dg-amber">Their own chatbot</text>
+          <text x="810" y="131" text-anchor="middle" class="dg-s">Claude, ChatGPT, whichever</text>
+          <text x="810" y="149" text-anchor="middle" class="dg-s">It already knows their project</text>
+          <text x="810" y="168" text-anchor="middle" class="dg-s">It does the hard part</text>
+          <text x="810" y="185" text-anchor="middle" class="dg-m dg-amber">COSTS US NOTHING</text>
+
+          <path d="M810 192 L810 252 L536 252" class="dg-edge-a"/>
+          <text x="676" y="244" text-anchor="middle" class="dg-lbl dg-amber">a task list comes back</text>
+
+          <rect x="230" y="224" width="300" height="58" rx="8" class="dg-node"/>
+          <text x="380" y="247" text-anchor="middle" class="dg-t">2 — Paste it in</text>
+          <text x="380" y="265" text-anchor="middle" class="dg-s">parsed into editable bullets, 12 tasks max</text>
+          <path d="M380 282 L380 306" class="dg-edge"/>
+
+          <rect x="230" y="312" width="300" height="52" rx="8" class="dg-node"/>
+          <text x="380" y="335" text-anchor="middle" class="dg-t">3 — What can you spend?</text>
+          <text x="380" y="353" text-anchor="middle" class="dg-s">a month, or per run</text>
+          <path d="M380 364 L380 388" class="dg-edge"/>
+
+          <rect x="230" y="394" width="300" height="58" rx="8" class="dg-node"/>
+          <text x="380" y="417" text-anchor="middle" class="dg-t">4 — What language must it work in?</text>
+          <text x="380" y="435" text-anchor="middle" class="dg-s">not the interface language — the project's</text>
+          <text x="380" y="448" text-anchor="middle" class="dg-m">CHANGES THE PICKS</text>
+          <path d="M380 452 L380 478" class="dg-edge"/>
+
+          <rect x="700" y="300" width="260" height="120" rx="8" class="dg-node dg-dash"/>
+          <text x="716" y="324" class="dg-m">LANGUAGE LIVES IN TWO PLACES</text>
+          <text x="716" y="346" class="dg-s">Interface — detected from the</text>
+          <text x="716" y="362" class="dg-s">browser, switchable, cosmetic.</text>
+          <text x="716" y="384" class="dg-s">Project — asked at step 4, and</text>
+          <text x="716" y="400" class="dg-s">it changes which models win.</text>
+
+          <rect x="180" y="484" width="400" height="76" rx="8" class="dg-node-key"/>
+          <text x="380" y="510" text-anchor="middle" class="dg-t-lg">One backend call</text>
+          <text x="380" y="531" text-anchor="middle" class="dg-s">classify, then score — drawn in full below</text>
+          <text x="380" y="550" text-anchor="middle" class="dg-m">ABOUT $0.0005</text>
+          <path d="M380 560 L380 594" class="dg-edge"/>
+
+          <rect x="140" y="600" width="480" height="112" rx="9" class="dg-node"/>
+          <text x="380" y="628" text-anchor="middle" class="dg-t-lg">Your recommendations</text>
+          <text x="380" y="651" text-anchor="middle" class="dg-s">Every task from the list, with a model against it</text>
+          <text x="380" y="670" text-anchor="middle" class="dg-s">A cheaper and a pricier variant beside each one</text>
+          <text x="380" y="689" text-anchor="middle" class="dg-s">Models on the single key marked; the rest flagged</text>
+          <text x="380" y="706" text-anchor="middle" class="dg-m">NOTHING HERE IS A RULING</text>
+
+          <path d="M620 648 L668 648 L668 592 L520 592" class="dg-edge"/>
+          <text x="700" y="640" class="dg-s">swap anything —</text>
+          <text x="700" y="656" class="dg-s">the cost updates</text>
+
+          <path d="M380 712 L380 750" class="dg-edge-t"/>
+
+          <rect x="140" y="756" width="480" height="104" rx="9" class="dg-node-t"/>
+          <text x="380" y="784" text-anchor="middle" class="dg-t-lg dg-teal">Your handoff document</text>
+          <text x="380" y="807" text-anchor="middle" class="dg-s">Assembled in code from the picks — no second model call</text>
+          <text x="380" y="826" text-anchor="middle" class="dg-s">Written in their language, ready to paste back</text>
+          <text x="380" y="845" text-anchor="middle" class="dg-s">Their own words quoted and fenced, never merged in</text>
+          <path d="M380 860 L380 894" class="dg-edge-t"/>
+
+          <rect x="140" y="900" width="480" height="82" rx="9" class="dg-node-t"/>
+          <text x="380" y="928" text-anchor="middle" class="dg-t dg-teal">"Get one OpenRouter key"</text>
+          <text x="380" y="949" text-anchor="middle" class="dg-s">One signup reaches most of the list</text>
+          <text x="380" y="968" text-anchor="middle" class="dg-s">Anything needing its own account is flagged individually</text>
+        </svg>
+      </div>
+      <figcaption>Note what is <em>not</em> here: no analyzing spinner that fakes work, no second model call to write the document, and no step where the user is asked to understand a model name before they have seen one.</figcaption>
+    </figure>
+  </section>
+
+  <section>
+    <h2>Inside the one call</h2>
+    <p>The most important rule in the system, and the easiest one to break by accident.</p>
+    <figure>
+      <div class="scroller">
+        <svg id="thecall" viewBox="0 0 820 330" role="img" aria-label="Diagram of the single backend call. The task list, budget and language go into a classifier model, which turns each task into a job type from a fixed list plus a volume estimate, and never names a model. Its output, enums and numbers only, passes to our own scoring code, which reads the nightly catalog, filters by budget and language, prefers models reachable on a single OpenRouter key, and selects the models.">
+          <rect x="16" y="110" width="160" height="80" rx="8" class="dg-node"/>
+          <text x="96" y="140" text-anchor="middle" class="dg-t">What we have</text>
+          <text x="96" y="159" text-anchor="middle" class="dg-s">task list, budget,</text>
+          <text x="96" y="175" text-anchor="middle" class="dg-s">language</text>
+          <path d="M176 150 L216 150" class="dg-edge"/>
+
+          <rect x="222" y="50" width="250" height="140" rx="8" class="dg-node-a"/>
+          <text x="347" y="76" text-anchor="middle" class="dg-t dg-amber">The model classifies</text>
+          <text x="347" y="99" text-anchor="middle" class="dg-s">Each task gets a job type from</text>
+          <text x="347" y="115" text-anchor="middle" class="dg-s">a fixed list — UI work, debugging,</text>
+          <text x="347" y="131" text-anchor="middle" class="dg-s">bulk, reasoning, vision —</text>
+          <text x="347" y="147" text-anchor="middle" class="dg-s">plus a volume estimate.</text>
+          <text x="347" y="172" text-anchor="middle" class="dg-m dg-amber">IT NEVER NAMES A MODEL</text>
+
+          <path d="M472 120 L532 120" class="dg-edge"/>
+          <text x="502" y="112" text-anchor="middle" class="dg-m">enums only</text>
+
+          <rect x="538" y="50" width="250" height="140" rx="8" class="dg-node-t"/>
+          <text x="663" y="76" text-anchor="middle" class="dg-t dg-teal">Your code selects</text>
+          <text x="663" y="99" text-anchor="middle" class="dg-s">Scores last night's catalog.</text>
+          <text x="663" y="115" text-anchor="middle" class="dg-s">Filters by budget and language.</text>
+          <text x="663" y="131" text-anchor="middle" class="dg-s">Prefers the single-key models.</text>
+          <text x="663" y="147" text-anchor="middle" class="dg-s">Returns three tiers.</text>
+          <text x="663" y="172" text-anchor="middle" class="dg-m dg-teal">DETERMINISTIC · AUDITABLE</text>
+
+          <path d="M663 240 L663 196" class="dg-edge-t"/>
+          <rect x="538" y="246" width="250" height="60" rx="8" class="dg-node"/>
+          <text x="663" y="270" text-anchor="middle" class="dg-t">Nightly catalog</text>
+          <text x="663" y="289" text-anchor="middle" class="dg-s">prices, scores, one-key coverage</text>
+        </svg>
+      </div>
+      <figcaption>Ask a model "which models should I use for these tasks" and it answers from training data — stale prices, missing releases, invented numbers. That is the bug in the original codebase, rebuilt at the centre where nobody would spot it. The classifier must hand over enums and nothing else.</figcaption>
+    </figure>
+    <p class="note warn"><span class="ch">How you would know it broke</span>You would not, from testing. A model naming models produces output that looks exactly as plausible as the correct version — right up until someone checks a price against the provider's own page. <b>The only defence is structural:</b> a response schema whose model field is an enum of job types, validated on arrival, with anything off-schema rejected rather than passed through.</p>
+  </section>
+
+  <section>
+    <h2>Screen by screen</h2>
+    <div class="screens">
+      <div class="screen">
+        <span class="tag">Screen 01</span>
+        <h3>Copy our prompt</h3>
+        <ul>
+          <li>One prompt, one copy button, no configuration</li>
+          <li>Worded to produce <b>bullets, not prose</b></li>
+          <li>Shown in the interface language</li>
+        </ul>
+        <p class="next"><b>They leave.</b> That is intended, not a leak.</p>
+      </div>
+      <div class="screen away">
+        <span class="tag">Away · not our screen</span>
+        <h3>Their chatbot</h3>
+        <ul>
+          <li>Already holds the project context</li>
+          <li>Does the decomposition on their subscription</li>
+          <li>Will not volunteer a competitor's model — which is the gap we fill</li>
+        </ul>
+        <p class="next"><b>They come back</b> with a task list on the clipboard.</p>
+      </div>
+      <div class="screen">
+        <span class="tag">Screen 02</span>
+        <h3>Paste it in</h3>
+        <ul>
+          <li>Bullets parsed client-side into an <b>editable list</b></li>
+          <li>Up to 12 tasks; extras trimmed, visibly</li>
+          <li>They delete noise before anything is sent</li>
+        </ul>
+        <p class="next"><b>Then</b> budget.</p>
+      </div>
+      <div class="screen">
+        <span class="tag">Screen 03</span>
+        <h3>What can you spend?</h3>
+        <ul>
+          <li>A month, or per run</li>
+          <li>Phrased in money, never in tokens</li>
+        </ul>
+        <p class="next"><b>Then</b> language.</p>
+      </div>
+      <div class="screen key">
+        <span class="tag">Screen 04</span>
+        <h3>What language must it work in?</h3>
+        <ul>
+          <li>Defaults to the interface language, <b>changeable</b></li>
+          <li>Multiple allowed — most projects are bilingual</li>
+          <li>Filters and reweights by multilingual score</li>
+        </ul>
+        <p class="next"><b>Then</b> the call runs.</p>
+      </div>
+      <div class="screen">
+        <span class="tag">Screen 05</span>
+        <h3>Your recommendations</h3>
+        <ul>
+          <li>Their own task wording down the left</li>
+          <li>A pick, a cheaper option, a pricier one</li>
+          <li><b>One-key models marked</b>, others flagged</li>
+          <li>Swap anything; the total moves</li>
+        </ul>
+        <p class="next"><b>Then</b> the handoff.</p>
+      </div>
+      <div class="screen">
+        <span class="tag">Screen 06</span>
+        <h3>Your handoff document</h3>
+        <ul>
+          <li>Built in code — <b>no second model call</b></li>
+          <li>In their language</li>
+          <li>Says which model does which task, and why</li>
+          <li>Ends with how to get the key</li>
+        </ul>
+        <p class="next"><b>They leave again</b>, and paste it where they started.</p>
+      </div>
+      <div class="screen">
+        <span class="tag">Always present</span>
+        <h3>The language switcher</h3>
+        <ul>
+          <li>Detected from the browser on first load</li>
+          <li>Never a blocking question</li>
+          <li>Remembered per visitor</li>
+        </ul>
+        <p class="next"><b>Changes the interface</b>, and the default at step 4.</p>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    Handoff user flow · drawn against <span style="font-family:var(--mono)">docs/architecture-decisions.md</span> revision 6 · 20 September 2026
+  </footer>
+
+</div>
